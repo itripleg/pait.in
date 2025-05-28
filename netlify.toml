@@ -1,4 +1,3 @@
-# netlify.toml
 [build]
   command = "yarn build"
   publish = ".next"
@@ -6,20 +5,19 @@
 [build.environment]
   NODE_OPTIONS = "--max-old-space-size=4096"
 
+# Important: API routes configuration for Netlify
+[[functions]]
+  directory = ".netlify/functions"
+
+# Redirect API routes to Netlify Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Handle client-side routing
+# Handle client-side routing for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   conditions = {Role = ["admin"]}
-
-# Default fallback for SPA routing
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
