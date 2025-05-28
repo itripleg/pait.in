@@ -30,17 +30,47 @@ function LoginForm() {
       });
 
       if (response.ok) {
-        document.cookie = `pait_auth=${password}; path=/; max-age=86400; samesite=strict`;
+        // Use more explicit cookie settings for production
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 1); // 1 day from now
+
+        document.cookie = `pait_auth=${password}; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
+          window.location.protocol === "https:"
+        }`;
+
+        console.log("Cookie set, redirecting to:", redirectTo); // Debug log
         router.push(redirectTo);
       } else {
         setError("Invalid password");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setError("Authentication failed");
     } finally {
       setLoading(false);
     }
   };
+
+  // Add after successful login response
+  if (response.ok) {
+    console.log("Login successful");
+    console.log("Current URL:", window.location.href);
+    console.log("Redirect to:", redirectTo);
+    console.log("Cookies before:", document.cookie);
+
+    // Set cookie
+    document.cookie = `pait_auth=${password}; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
+      window.location.protocol === "https:"
+    }`;
+
+    console.log("Cookies after:", document.cookie);
+
+    // Wait a bit then redirect
+    setTimeout(() => {
+      console.log("Redirecting now...");
+      router.push(redirectTo);
+    }, 100);
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
