@@ -1,4 +1,4 @@
-// app/login/page.tsx
+// app/login/page.tsx - Complete clean version
 "use client";
 
 import { Suspense } from "react";
@@ -30,16 +30,26 @@ function LoginForm() {
       });
 
       if (response.ok) {
-        // Use more explicit cookie settings for production
+        console.log("Login successful");
+        console.log("Current URL:", window.location.href);
+        console.log("Redirect to:", redirectTo);
+        console.log("Cookies before:", document.cookie);
+
+        // Set cookie with production-friendly settings
         const expires = new Date();
-        expires.setDate(expires.getDate() + 1); // 1 day from now
+        expires.setDate(expires.getDate() + 1);
 
         document.cookie = `pait_auth=${password}; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
           window.location.protocol === "https:"
         }`;
 
-        console.log("Cookie set, redirecting to:", redirectTo); // Debug log
-        router.push(redirectTo);
+        console.log("Cookies after:", document.cookie);
+
+        // Use window.location for more reliable redirect on Netlify
+        setTimeout(() => {
+          console.log("Redirecting now...");
+          window.location.href = redirectTo;
+        }, 500);
       } else {
         setError("Invalid password");
       }
@@ -50,27 +60,6 @@ function LoginForm() {
       setLoading(false);
     }
   };
-
-  // Add after successful login response
-  if (response.ok) {
-    console.log("Login successful");
-    console.log("Current URL:", window.location.href);
-    console.log("Redirect to:", redirectTo);
-    console.log("Cookies before:", document.cookie);
-
-    // Set cookie
-    document.cookie = `pait_auth=${password}; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
-      window.location.protocol === "https:"
-    }`;
-
-    console.log("Cookies after:", document.cookie);
-
-    // Wait a bit then redirect
-    setTimeout(() => {
-      console.log("Redirecting now...");
-      router.push(redirectTo);
-    }, 100);
-  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">

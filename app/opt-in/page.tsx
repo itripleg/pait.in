@@ -1,4 +1,4 @@
-// app/opt-in/page.tsx
+// app/opt-in/page.tsx - Complete clean version
 "use client";
 
 import { Suspense } from "react";
@@ -15,30 +15,38 @@ function OptInForm() {
 
   const redirectTo = searchParams.get("redirect") || "/";
 
-  // Check if already opted in
   useEffect(() => {
     if (hasOptedIn()) {
-      router.push(redirectTo);
+      window.location.href = redirectTo;
     }
-  }, [redirectTo, router]);
+  }, [redirectTo]);
 
   const handleOptIn = () => {
     setIsLoading(true);
+
+    console.log("Opt-in starting, redirect to:", redirectTo);
 
     // Set localStorage
     setOptInStatus(true);
 
     // Set cookie for middleware
-    document.cookie = "pait_optin=true; path=/; max-age=31536000; samesite=lax";
+    const expires = new Date();
+    expires.setFullYear(expires.getFullYear() + 1);
+    document.cookie = `pait_optin=true; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
+      window.location.protocol === "https:"
+    }`;
 
-    // Redirect after small delay
+    console.log("Cookies set:", document.cookie);
+
+    // Use window.location for reliable redirect
     setTimeout(() => {
-      router.push(redirectTo);
+      console.log("Redirecting to:", redirectTo);
+      window.location.href = redirectTo;
     }, 500);
   };
 
   const handleDecline = () => {
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (
@@ -56,7 +64,7 @@ function OptInForm() {
         <CardContent className="space-y-6">
           <div className="bg-zinc-800/50 rounded-lg p-4 space-y-3">
             <h3 className="text-green-400 font-mono text-sm font-bold">
-              What you&pos;re agreeing to:
+              What you&apos;re agreeing to:
             </h3>
             <div className="text-xs text-green-400/80 space-y-2">
               <p>✓ Receive SMS messages through PAIT messaging system</p>
