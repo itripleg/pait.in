@@ -1,0 +1,17 @@
+your-project/
+├── app/
+│   ├── api/
+│   │   ├── auth/route.ts
+│   │   ├── messages/route.ts
+│   │   ├── send-message/route.ts
+│   │   └── webhook/route.ts
+│   └── page.tsx
+├── components/ui/
+│   ├── button.tsx
+│   ├── card.tsx
+│   └── input.tsx
+├── lib/
+│   ├── db.ts
+│   ├── twilio.ts
+│   └── utils.ts
+└── .env.local
