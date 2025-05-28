@@ -18,22 +18,15 @@ export default function ContactsPage() {
 
   const fetchContacts = async () => {
     try {
-      const getPassword = () => {
-        const cookies = document.cookie.split(";");
-        const authCookie = cookies.find((cookie) =>
-          cookie.trim().startsWith("pait_auth=")
-        );
-        return authCookie ? authCookie.split("=")[1] : "";
-      };
-
-      const password = getPassword();
-      const response = await fetch(
-        `/api/contacts?password=${encodeURIComponent(password)}`
-      );
+      // Remove password from URL - cookie is sent automatically
+      const response = await fetch("/api/contacts");
 
       if (response.ok) {
         const data = await response.json();
         setContacts(data.contacts);
+      } else if (response.status === 401) {
+        // Handle unauthorized - redirect to login
+        router.push("/login");
       } else {
         console.error("Failed to fetch contacts:", response.status);
       }

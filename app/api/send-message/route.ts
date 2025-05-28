@@ -1,16 +1,20 @@
 // app/api/send-message/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { sendSMS } from "@/lib/twilio";
-import { saveMessage, initDB } from "@/lib/db";
-import { getContactByName, approvedContacts } from "@/lib/contacts";
+import { sendSMS } from "../../../lib/twilio";
+import { saveMessage, initDB } from "../../../lib/db";
+import { getContactByName } from "../../../lib/contacts";
 
 export async function POST(request: NextRequest) {
   await initDB();
-  const { message, password, contactName } = await request.json();
 
-  if (password !== process.env.APP_PASSWORD) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  // Get auth token from cookie instead of request body
+  const authToken = request.cookies.get("pait_auth")?.value;
+
+  if (!authToken || authToken !== process.env.APP_PASSWORD) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { message, contactName } = await request.json(); // Remove password from body
 
   if (!message || message.trim().length === 0) {
     return NextResponse.json({ error: "Message is required" }, { status: 400 });

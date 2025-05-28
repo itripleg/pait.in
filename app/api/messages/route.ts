@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMessages, initDB } from "../../../lib/db";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const password = searchParams.get("password");
+  // Get auth token from cookie instead of URL parameter
+  const authToken = request.cookies.get("pait_auth")?.value;
 
-  if (password !== process.env.APP_PASSWORD) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  if (!authToken || authToken !== process.env.APP_PASSWORD) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   await initDB();

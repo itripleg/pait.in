@@ -46,13 +46,14 @@ function MessagingInterface() {
 
   const fetchMessages = async () => {
     try {
-      const password = getPassword();
-      const response = await fetch(
-        `/api/messages?password=${encodeURIComponent(password)}`
-      );
+      // Remove password from URL - cookie is sent automatically
+      const response = await fetch("/api/messages");
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages);
+      } else if (response.status === 401) {
+        // Handle unauthorized - redirect to login
+        router.push("/login");
       }
     } catch (error) {
       console.error("Failed to fetch messages:", error);
@@ -61,10 +62,8 @@ function MessagingInterface() {
 
   const fetchContacts = async () => {
     try {
-      const password = getPassword();
-      const response = await fetch(
-        `/api/contacts?password=${encodeURIComponent(password)}`
-      );
+      // Remove password from URL - cookie is sent automatically
+      const response = await fetch("/api/contacts");
       if (response.ok) {
         const data = await response.json();
         setContacts(data.contacts);
@@ -79,6 +78,9 @@ function MessagingInterface() {
             setSelectedContact(contact);
           }
         }
+      } else if (response.status === 401) {
+        // Handle unauthorized - redirect to login
+        router.push("/login");
       }
     } catch (error) {
       console.error("Failed to fetch contacts:", error);
@@ -91,14 +93,14 @@ function MessagingInterface() {
 
     setLoading(true);
     try {
-      const password = getPassword();
+      // Remove password from request body
       const response = await fetch("/api/send-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          password,
           contactName: selectedContact.name,
+          // password removed - using cookie authentication
         }),
       });
 
@@ -108,6 +110,9 @@ function MessagingInterface() {
         setStatus(data.message);
         fetchMessages();
         setTimeout(() => setStatus(""), 3000);
+      } else if (response.status === 401) {
+        // Handle unauthorized - redirect to login
+        router.push("/login");
       } else {
         const error = await response.json();
         setStatus(`Error: ${error.error}`);
