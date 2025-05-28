@@ -6,7 +6,7 @@ export const approvedContacts: Contact[] = [
   {
     id: "1",
     name: "Dad",
-    phone: "+18287671055", // Updated with your number
+    phone: "+18287671065", // Updated with your number
     emoji: "👦🏽",
     approved: true,
   },
