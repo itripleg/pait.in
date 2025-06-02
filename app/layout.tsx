@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { ClientTime, ClientDate } from "@/components/ClientTime";
+import { UserStatus } from "@/components/UserStatus";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,25 +29,6 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
 };
-
-function ClientTime() {
-  return (
-    <span className="font-mono tabular-nums">
-      {new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
-    </span>
-  );
-}
-
-function ClientDate() {
-  return (
-    <span className="font-mono tabular-nums">
-      {new Date().toLocaleDateString()}
-    </span>
-  );
-}
 
 export default function RootLayout({
   children,
@@ -96,9 +79,7 @@ export default function RootLayout({
                     <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500 shadow-sm"></div>
                     <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 shadow-sm animate-pulse"></div>
                   </div>
-                  <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
-                    user@pait.in:~$
-                  </span>
+                  <UserStatus />
                   <div className="hidden lg:block">
                     <span className="text-green-500/60 font-mono text-xs">
                       Personal Assistant & Information Terminal
