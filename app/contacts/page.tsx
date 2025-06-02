@@ -18,14 +18,12 @@ export default function ContactsPage() {
 
   const fetchContacts = async () => {
     try {
-      // Remove password from URL - cookie is sent automatically
       const response = await fetch("/api/contacts");
 
       if (response.ok) {
         const data = await response.json();
         setContacts(data.contacts);
       } else if (response.status === 401) {
-        // Handle unauthorized - redirect to login
         router.push("/login");
       } else {
         console.error("Failed to fetch contacts:", response.status);
@@ -38,7 +36,6 @@ export default function ContactsPage() {
   };
 
   const handleMessageContact = (contact: Contact) => {
-    // Navigate to messaging with contact ID in URL
     router.push(`/messaging?contact=${contact.id}`);
   };
 
@@ -51,32 +48,40 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono p-4">
+    <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-green-500/30">
-          <h1 className="text-2xl font-bold">👥 CONTACTS</h1>
-          <div className="flex gap-2">
+        {/* Mobile-Friendly Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-green-500/30 space-y-3 sm:space-y-0">
+          <h1 className="text-xl sm:text-2xl font-bold">👥 CONTACTS</h1>
+
+          {/* Mobile Navigation */}
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => router.push("/messaging")}
+              size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
             >
-              💬 MESSAGES
+              <span className="sm:hidden">💬</span>
+              <span className="hidden sm:inline">💬 MESSAGES</span>
             </Button>
             <Button
               onClick={() => router.push("/")}
+              size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
             >
-              🏠 HOME
+              <span className="sm:hidden">🏠</span>
+              <span className="hidden sm:inline">🏠 HOME</span>
             </Button>
             <Button
               onClick={handleLogout}
+              size="sm"
               variant="destructive"
-              className="font-mono"
+              className="font-mono text-xs flex-1 sm:flex-none"
             >
-              LOGOUT
+              <span className="sm:hidden">🚪</span>
+              <span className="hidden sm:inline">LOGOUT</span>
             </Button>
           </div>
         </div>
@@ -86,26 +91,28 @@ export default function ContactsPage() {
             <div className="text-green-400">Loading contacts...</div>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {contacts.map((contact) => (
               <Card
                 key={contact.id}
                 className="bg-zinc-900 border-green-500/30 hover:border-green-500/60 transition-all duration-300"
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="text-center">
-                    <div className="text-4xl mb-3">{contact.emoji}</div>
-                    <h3 className="text-xl font-bold text-green-400 mb-2">
+                    <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">
+                      {contact.emoji}
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-bold text-green-400 mb-2">
                       {contact.name}
                     </h3>
-                    <p className="text-green-400/70 text-sm mb-4 font-mono">
+                    <p className="text-green-400/70 text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
                       {contact.phone
                         .replace("+1", "")
                         .replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3")}
                     </p>
                     <Button
                       onClick={() => handleMessageContact(contact)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold"
+                      className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold text-sm py-2"
                     >
                       💬 MESSAGE
                     </Button>

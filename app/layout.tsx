@@ -1,7 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-// import ClientLayout from "./client-layout";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,6 +27,25 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
 };
+
+function ClientTime() {
+  return (
+    <span className="font-mono tabular-nums">
+      {new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
+    </span>
+  );
+}
+
+function ClientDate() {
+  return (
+    <span className="font-mono tabular-nums">
+      {new Date().toLocaleDateString()}
+    </span>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -69,31 +88,33 @@ export default function RootLayout({
 
           {/* Terminal Header */}
           <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-green-500/30 shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500 shadow-sm"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm animate-pulse"></div>
+                <div className="flex items-center space-x-2 sm:space-x-4">
+                  <div className="flex space-x-1 sm:space-x-2">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500 shadow-sm"></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500 shadow-sm"></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 shadow-sm animate-pulse"></div>
                   </div>
-                  <span className="text-green-400 font-mono text-sm tracking-wider">
+                  <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
                     user@pait.in:~$
                   </span>
-                  <div className="hidden md:block">
+                  <div className="hidden lg:block">
                     <span className="text-green-500/60 font-mono text-xs">
                       Personal Assistant & Information Terminal
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-6 text-xs text-green-400/70">
-                  <div className="hidden sm:flex items-center space-x-4">
-                    <span>System: ONLINE</span>
-                    <span>Security: MAX</span>
+                <div className="flex items-center space-x-2 sm:space-x-6 text-xs text-green-400/70">
+                  <div className="hidden md:flex items-center space-x-2 sm:space-x-4 text-xs">
+                    <span className="hidden sm:inline">System: ONLINE</span>
+                    <span className="hidden lg:inline">Security: MAX</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50"></div>
-                    <span className="font-mono tracking-wide">SECURE</span>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50"></div>
+                    <span className="font-mono tracking-wide text-xs">
+                      SECURE
+                    </span>
                   </div>
                 </div>
               </div>
@@ -101,32 +122,25 @@ export default function RootLayout({
           </div>
 
           {/* Main Content Area with proper spacing */}
-          <div className="relative z-10 pt-20 pb-20 min-h-screen">
+          <div className="relative z-10 pt-14 sm:pt-20 pb-16 sm:pb-20 min-h-screen">
             {children}
           </div>
 
           {/* Terminal Footer */}
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-green-500/30 shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
               <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-4 text-green-400/60">
+                <div className="flex items-center space-x-2 sm:space-x-4 text-green-400/60">
                   <span className="font-mono">PAIT v1.0.0</span>
                   <span className="hidden sm:inline">•</span>
                   <span className="hidden sm:inline">Family Safe</span>
                   <span className="hidden md:inline">•</span>
                   <span className="hidden md:inline">End-to-End Encrypted</span>
                 </div>
-                <div className="flex items-center space-x-3 text-green-400/50">
-                  <span className="font-mono tabular-nums">
-                    {new Date().toLocaleDateString()}
-                  </span>
+                <div className="flex items-center space-x-2 sm:space-x-3 text-green-400/50">
+                  <ClientDate />
                   <span className="text-green-500/30">•</span>
-                  <span className="font-mono tabular-nums">
-                    {new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
+                  <ClientTime />
                 </div>
               </div>
             </div>
