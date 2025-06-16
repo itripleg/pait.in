@@ -1,8 +1,8 @@
-// app/messaging/page.tsx
+// app/messaging/page.tsx - Enhanced with filtering
 "use client";
 
 import { Suspense } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ function MessagingInterface() {
   const [status, setStatus] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [showAllMessages, setShowAllMessages] = useState(true);
 
   // Get password from cookie
   const getPassword = () => {
@@ -40,6 +41,7 @@ function MessagingInterface() {
       const contact = contacts.find((c) => c.id === contactId);
       if (contact) {
         setSelectedContact(contact);
+        setShowAllMessages(false); // Auto-filter when coming from contacts page
       }
     }
   }, [searchParams, contacts, selectedContact]);
@@ -72,6 +74,7 @@ function MessagingInterface() {
           );
           if (contact) {
             setSelectedContact(contact);
+            setShowAllMessages(false);
           }
         }
       } else if (response.status === 401) {
@@ -124,6 +127,32 @@ function MessagingInterface() {
     router.push("/");
   };
 
+  // Filter messages based on selection
+  const filteredMessages = useMemo(() => {
+    if (showAllMessages || !selectedContact) {
+      return messages;
+    }
+
+    // Filter messages for selected contact
+    return messages.filter((msg) => {
+      return (
+        msg.contact_name === selectedContact.name ||
+        msg.from_number === selectedContact.phone ||
+        msg.to_number === selectedContact.phone
+      );
+    });
+  }, [messages, selectedContact, showAllMessages]);
+
+  // Get message count per contact for display
+  const getContactMessageCount = (contact: Contact) => {
+    return messages.filter(
+      (msg) =>
+        msg.contact_name === contact.name ||
+        msg.from_number === contact.phone ||
+        msg.to_number === contact.phone
+    ).length;
+  };
+
   useEffect(() => {
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
@@ -131,16 +160,20 @@ function MessagingInterface() {
 
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Mobile-Friendly Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-green-500/30 space-y-3 sm:space-y-0">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold">💬 PAIGER</h1>
-            {selectedContact && (
-              <p className="text-green-400/70 text-sm">
-                Messaging: {selectedContact.emoji} {selectedContact.name}
-              </p>
-            )}
+            <div className="flex items-center gap-2 text-sm text-green-400/70 mt-1">
+              <span>
+                {showAllMessages
+                  ? `All Messages (${messages.length})`
+                  : selectedContact
+                  ? `${selectedContact.emoji} ${selectedContact.name} (${filteredMessages.length} messages)`
+                  : "Select contact to message"}
+              </span>
+            </div>
           </div>
 
           {/* Mobile Navigation */}
@@ -175,38 +208,70 @@ function MessagingInterface() {
           </div>
         </div>
 
-        {/* Contact Selection */}
-        {!selectedContact && (
+        {/* Contact Filter Bar */}
+        <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-green-400/70 whitespace-nowrap">
+                  Filter:
+                </span>
+                <Button
+                  onClick={() => {
+                    setShowAllMessages(true);
+                    setSelectedContact(null);
+                  }}
+                  variant={showAllMessages ? "default" : "outline"}
+                  size="sm"
+                  className={`font-mono text-xs ${
+                    showAllMessages
+                      ? "bg-green-500 text-black"
+                      : "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                  }`}
+                >
+                  All Messages ({messages.length})
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                {contacts.map((contact) => {
+                  const messageCount = getContactMessageCount(contact);
+                  const isSelected =
+                    selectedContact?.id === contact.id && !showAllMessages;
+
+                  return (
+                    <Button
+                      key={contact.id}
+                      onClick={() => {
+                        setSelectedContact(contact);
+                        setShowAllMessages(false);
+                      }}
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      className={`font-mono text-xs ${
+                        isSelected
+                          ? "bg-green-500 text-black"
+                          : "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                      }`}
+                    >
+                      {contact.emoji} {contact.name} ({messageCount})
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Send Message Form - Only show when contact is selected */}
+        {selectedContact && !showAllMessages && (
           <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
             <CardHeader className="pb-3">
-              <CardTitle className="text-green-400 font-mono text-lg">
-                SELECT CONTACT
+              <CardTitle className="text-green-400 font-mono text-lg flex items-center gap-2">
+                💬 Send to {selectedContact.emoji} {selectedContact.name}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {contacts.map((contact) => (
-                  <Button
-                    key={contact.id}
-                    onClick={() => setSelectedContact(contact)}
-                    variant="outline"
-                    className="h-26 sm:h-20 flex flex-col border-green-500/30 hover:border-green-500/60 text-green-400 p-2"
-                  >
-                    <div className="text-xl sm:text-2xl">{contact.emoji}</div>
-                    <div className="text-xs truncate w-full">
-                      {contact.name}
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Send Message Form */}
-        {selectedContact && (
-          <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
-            <CardContent className="pt-4 sm:pt-6">
               <form onSubmit={sendMessage} className="space-y-3">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Input
@@ -225,16 +290,18 @@ function MessagingInterface() {
                     {loading ? "SENDING..." : "SEND"}
                   </Button>
                 </div>
-                <Button
-                  type="button"
-                  onClick={() => setSelectedContact(null)}
-                  variant="outline"
-                  size="sm"
-                  className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs"
-                >
-                  Change Contact
-                </Button>
               </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Quick Message for All Messages View */}
+        {showAllMessages && (
+          <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="text-center text-green-400/70 text-sm">
+                💡 Select a contact above to send a new message
+              </div>
             </CardContent>
           </Card>
         )}
@@ -249,29 +316,36 @@ function MessagingInterface() {
         {/* Message History */}
         <Card className="bg-zinc-900 border-green-500/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-green-400 font-mono text-lg">
-              MESSAGE HISTORY
+            <CardTitle className="text-green-400 font-mono text-lg flex items-center justify-between">
+              <span>📜 MESSAGE HISTORY</span>
+              <span className="text-xs text-green-400/60">
+                {filteredMessages.length} messages
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto">
-              {messages.length === 0 ? (
-                <p className="text-zinc-500 text-center font-mono text-sm">
-                  No messages yet...
+              {filteredMessages.length === 0 ? (
+                <p className="text-zinc-500 text-center font-mono text-sm py-8">
+                  {showAllMessages
+                    ? "No messages yet..."
+                    : `No messages with ${
+                        selectedContact?.name || "this contact"
+                      } yet...`}
                 </p>
               ) : (
-                messages.map((msg) => (
+                filteredMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`p-3 sm:p-4 rounded-lg border ${
+                    className={`p-3 sm:p-4 rounded-lg border transition-all hover:scale-[1.01] ${
                       msg.direction === "outgoing"
-                        ? "bg-green-950/30 border-green-500/50"
-                        : "bg-blue-950/30 border-blue-500/50"
+                        ? "bg-green-950/30 border-green-500/50 ml-0 sm:ml-8"
+                        : "bg-blue-950/30 border-blue-500/50 mr-0 sm:mr-8"
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 space-y-1 sm:space-y-0">
                       <span
-                        className={`text-xs font-mono ${
+                        className={`text-xs font-mono font-bold ${
                           msg.direction === "outgoing"
                             ? "text-green-400"
                             : "text-blue-400"
@@ -279,12 +353,18 @@ function MessagingInterface() {
                       >
                         {msg.direction === "outgoing" ? "→ TO" : "← FROM"}{" "}
                         {msg.contact_name || "Unknown"}
+                        {showAllMessages && (
+                          <span className="ml-2 text-green-400/50">
+                            via{" "}
+                            {msg.from_number?.includes("@") ? "EMAIL" : "SMS"}
+                          </span>
+                        )}
                       </span>
                       <span className="text-xs text-zinc-500 font-mono">
                         {new Date(msg.timestamp).toLocaleString()}
                       </span>
                     </div>
-                    <div className="text-green-400 font-mono text-sm break-words">
+                    <div className="text-green-400 font-mono text-sm break-words leading-relaxed">
                       {msg.content}
                     </div>
                   </div>

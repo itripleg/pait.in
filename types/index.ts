@@ -7,6 +7,11 @@ export interface Contact {
   approved: boolean;
 }
 
+export interface EnhancedContact extends Contact {
+  email?: string;
+  methods: ("sms" | "email")[];
+}
+
 export interface Message {
   id: string | number; // Allow both string (Firebase) and number (PostgreSQL)
   content: string;
