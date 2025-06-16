@@ -1,5 +1,4 @@
-// lib/email.ts - SendGrid
-
+// lib/email.ts - SendGrid email service with pait.in reply support
 import sgMail from "@sendgrid/mail";
 
 export interface EmailOptions {
@@ -7,15 +6,23 @@ export interface EmailOptions {
   subject: string;
   text: string;
   from?: string;
+  replyTo?: string;
 }
 
 // Initialize SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
-export async function sendEmail({ to, subject, text, from }: EmailOptions) {
+export async function sendEmail({
+  to,
+  subject,
+  text,
+  from,
+  replyTo,
+}: EmailOptions) {
   const msg = {
     to: to,
-    from: from || "joshua.bell.828@gmail.com",
+    from: from || "joshua.bell.828@gmail.com", // Your verified sender
+    replyTo: replyTo || "pait@mail.pait.in", // Replies go to your domain!
     subject: subject,
     text: text,
     html: `
@@ -26,15 +33,16 @@ export async function sendEmail({ to, subject, text, from }: EmailOptions) {
         </div>
         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #00ff4130;">
           <small style="color: #00ff4150;">Sent via PAIT - Personal Assistant & Information Terminal</small>
+          <br>
+          <small style="color: #00ff4130;">Reply to this email to respond via PAIT</small>
         </div>
       </div>
     `,
   };
 
-  // Follow SendGrid's pattern but with async/await for cleaner code
   try {
     await sgMail.send(msg);
-    console.log("Email sent");
+    console.log("Email sent successfully");
     return {
       success: true,
       id: "sent",
@@ -46,6 +54,7 @@ export async function sendEmail({ to, subject, text, from }: EmailOptions) {
   }
 }
 
+// Alternative: Using SendGrid (also very easy)
 export async function sendEmailSendGrid({ to, subject, text }: EmailOptions) {
   try {
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {

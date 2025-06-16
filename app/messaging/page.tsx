@@ -1,4 +1,4 @@
-// app/messaging/page.tsx - Enhanced with filtering
+// app/messaging/page.tsx - Enhanced with safe role-based filtering
 "use client";
 
 import { Suspense } from "react";
@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Contact, Message } from "@/types";
+import { useUserRole } from "@/lib/hooks/useUserRole";
 
 function MessagingInterface() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { userRole, isAdmin, isLoading: userLoading } = useUserRole();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,15 +21,6 @@ function MessagingInterface() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showAllMessages, setShowAllMessages] = useState(true);
-
-  // Get password from cookie
-  const getPassword = () => {
-    const cookies = document.cookie.split(";");
-    const authCookie = cookies.find((cookie) =>
-      cookie.trim().startsWith("pait_auth=")
-    );
-    return authCookie ? authCookie.split("=")[1] : "";
-  };
 
   useEffect(() => {
     fetchMessages();
@@ -127,25 +120,45 @@ function MessagingInterface() {
     router.push("/");
   };
 
-  // Filter messages based on selection
+  // Filter messages based on selection and user role
   const filteredMessages = useMemo(() => {
+    let messagesToShow = messages;
+
+    // If user is not admin, filter out unknown contacts
+    if (!isAdmin) {
+      messagesToShow = messages.filter((msg) => {
+        // Only show messages from known contacts (don't start with "Unknown")
+        return !msg.contact_name?.startsWith("Unknown");
+      });
+    }
+
+    // Apply contact filter if selected
     if (showAllMessages || !selectedContact) {
-      return messages;
+      return messagesToShow;
     }
 
     // Filter messages for selected contact
-    return messages.filter((msg) => {
+    return messagesToShow.filter((msg) => {
       return (
         msg.contact_name === selectedContact.name ||
         msg.from_number === selectedContact.phone ||
         msg.to_number === selectedContact.phone
       );
     });
-  }, [messages, selectedContact, showAllMessages]);
+  }, [messages, selectedContact, showAllMessages, isAdmin]);
 
-  // Get message count per contact for display
+  // Get message count per contact for display (filtered by user role)
   const getContactMessageCount = (contact: Contact) => {
-    return messages.filter(
+    let messagesToCount = messages;
+
+    // If not admin, exclude unknown contacts from count
+    if (!isAdmin) {
+      messagesToCount = messages.filter(
+        (msg) => !msg.contact_name?.startsWith("Unknown")
+      );
+    }
+
+    return messagesToCount.filter(
       (msg) =>
         msg.contact_name === contact.name ||
         msg.from_number === contact.phone ||
@@ -158,6 +171,19 @@ function MessagingInterface() {
     return () => clearInterval(interval);
   }, []);
 
+  // Show loading while determining user role
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-green-400 animate-pulse">
+            Loading user information...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
       <div className="max-w-5xl mx-auto">
@@ -168,11 +194,14 @@ function MessagingInterface() {
             <div className="flex items-center gap-2 text-sm text-green-400/70 mt-1">
               <span>
                 {showAllMessages
-                  ? `All Messages (${messages.length})`
+                  ? `All Messages (${filteredMessages.length})`
                   : selectedContact
                   ? `${selectedContact.emoji} ${selectedContact.name} (${filteredMessages.length} messages)`
                   : "Select contact to message"}
               </span>
+              {isAdmin && (
+                <span className="text-yellow-400/70 text-xs">[ADMIN VIEW]</span>
+              )}
             </div>
           </div>
 
@@ -229,7 +258,7 @@ function MessagingInterface() {
                       : "border-green-500/30 text-green-400 hover:bg-green-500/10"
                   }`}
                 >
-                  All Messages ({messages.length})
+                  All Messages ({filteredMessages.length})
                 </Button>
               </div>
 
@@ -272,7 +301,7 @@ function MessagingInterface() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={sendMessage} className="space-y-3">
+              <form onSubmit={sendMessage}>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Input
                     type="text"
@@ -343,7 +372,7 @@ function MessagingInterface() {
                         : "bg-blue-950/30 border-blue-500/50 mr-0 sm:mr-8"
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 space-y-1 sm:space-y-0">
+                    <div className="flex items-center justify-between mb-2 space-y-1 sm:space-y-0">
                       <span
                         className={`text-xs font-mono font-bold ${
                           msg.direction === "outgoing"
@@ -352,7 +381,15 @@ function MessagingInterface() {
                         }`}
                       >
                         {msg.direction === "outgoing" ? "→ TO" : "← FROM"}{" "}
-                        {msg.contact_name || "Unknown"}
+                        <span
+                          className={
+                            msg.contact_name?.startsWith("Unknown")
+                              ? "text-yellow-400"
+                              : ""
+                          }
+                        >
+                          {msg.contact_name || "Unknown"}
+                        </span>
                         {showAllMessages && (
                           <span className="ml-2 text-green-400/50">
                             via{" "}

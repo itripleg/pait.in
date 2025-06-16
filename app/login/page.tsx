@@ -1,21 +1,17 @@
-// app/login/page.tsx - Complete clean version
+// app/login/page.tsx - Enhanced login with user detection
 "use client";
 
-import { Suspense } from "react";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export default function LoginPage() {
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const redirectTo = searchParams.get("redirect") || "/";
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,93 +26,80 @@ function LoginForm() {
       });
 
       if (response.ok) {
-        console.log("Login successful");
-        console.log("Current URL:", window.location.href);
-        console.log("Redirect to:", redirectTo);
-        console.log("Cookies before:", document.cookie);
+        const data = await response.json();
 
-        // Set cookie with production-friendly settings
-        const expires = new Date();
-        expires.setDate(expires.getDate() + 1);
+        // Set auth cookie with password (we'll validate on each request)
+        document.cookie = `pait_auth=${password}; path=/; max-age=86400`; // 24 hours
 
-        document.cookie = `pait_auth=${password}; path=/; expires=${expires.toUTCString()}; samesite=lax; secure=${
-          window.location.protocol === "https:"
-        }`;
+        // Set user info cookie for UI (this is what UserStatus reads)
+        document.cookie = `pait_user=${JSON.stringify({
+          id: data.user.id,
+          name: data.user.name,
+          emoji: data.user.emoji,
+          role: data.user.role,
+        })}; path=/; max-age=86400`;
 
-        console.log("Cookies after:", document.cookie);
-
-        // Use window.location for more reliable redirect on Netlify
-        setTimeout(() => {
-          console.log("Redirecting now...");
-          window.location.href = redirectTo;
-        }, 500);
+        // Redirect based on role
+        if (data.user.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       } else {
         setError("Invalid password");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setError("Authentication failed");
+      setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
         <CardHeader className="text-center">
-          <Button
-            onClick={() => router.push("/")}
-            variant="ghost"
-            className="text-green-400 hover:bg-green-500/10 absolute left-4 top-4"
-          >
-            ← Home
-          </Button>
-          <div className="text-4xl mb-4">🔐</div>
-          <CardTitle className="text-green-400 font-mono text-2xl">
-            PAIT ACCESS
+          <CardTitle className="text-2xl font-bold text-green-400">
+            🔐 PAIT LOGIN
           </CardTitle>
-          <p className="text-green-400/70 text-sm">Authentication required</p>
+          <p className="text-green-400/70 text-sm mt-2">
+            Personal Assistant & Information Terminal
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
-            />
+            <div>
+              <Input
+                type="password"
+                placeholder="Enter password..."
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="text-red-400 text-sm text-center bg-red-950/30 p-2 rounded border border-red-500/30">
+                {error}
+              </div>
+            )}
+
             <Button
               type="submit"
               disabled={loading}
               className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold"
             >
-              {loading ? "AUTHENTICATING..." : "ACCESS GRANTED"}
+              {loading ? "AUTHENTICATING..." : "LOGIN"}
             </Button>
           </form>
-          {error && (
-            <p className="mt-4 text-center text-red-400 font-mono text-sm">
-              {error}
-            </p>
-          )}
+
+          <div className="mt-6 text-center text-xs text-green-400/50">
+            <p>🔒 Secure access required</p>
+          </div>
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-green-400 font-mono">Loading login...</div>
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
   );
 }

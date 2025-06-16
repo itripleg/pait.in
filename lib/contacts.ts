@@ -13,16 +13,16 @@ export const approvedContacts: EnhancedContact[] = [
     id: "1",
     name: "Dad",
     phone: "+18287671065",
-    email: "joshua.bell.828@gmail.com", // Your email hardcoded
+    email: "joshua.bell.828@gmail.com",
     emoji: "👦🏽",
     approved: true,
-    methods: ["sms", "email"], // Support both
+    methods: ["sms", "email"],
   },
   {
     id: "2",
     name: "Mom",
     phone: "+18283550002",
-    email: "mom@example.com", // You can update this later
+    email: "mom@example.com",
     emoji: "👩",
     approved: true,
     methods: ["sms", "email"],
@@ -31,7 +31,7 @@ export const approvedContacts: EnhancedContact[] = [
     id: "3",
     name: "GingGing",
     phone: "+18283189701",
-    email: "gingGing@example.com", // You can update this later
+    email: "gingGing@example.com",
     emoji: "👵",
     approved: true,
     methods: ["sms", "email"],
@@ -40,7 +40,7 @@ export const approvedContacts: EnhancedContact[] = [
     id: "4",
     name: "WayWay",
     phone: "+18286331891",
-    email: "wayway@example.com", // You can update this later
+    email: "wayway@example.com",
     emoji: "👴",
     approved: true,
     methods: ["sms", "email"],
