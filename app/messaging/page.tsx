@@ -1,6 +1,6 @@
 // app/messaging/page.tsx - Enhanced with safe role-based filtering and admin functionality
 "use client";
-
+import { AuthDebug } from "@/components/AuthDebug";
 import { Suspense } from "react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -258,6 +258,7 @@ function MessagingInterface() {
 
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
+      {process.env.NODE_ENV === "production" && <AuthDebug />}
       <div className="max-w-5xl mx-auto">
         {/* Mobile-Friendly Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-green-500/30 space-y-3 sm:space-y-0">
