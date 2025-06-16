@@ -1,4 +1,4 @@
-// app/messaging/page.tsx - Enhanced with safe role-based filtering
+// app/messaging/page.tsx - Enhanced with safe role-based filtering and admin functionality
 "use client";
 
 import { Suspense } from "react";
@@ -116,7 +116,7 @@ function MessagingInterface() {
     document.cookie =
       "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
-      "pait_optin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push("/");
   };
 
@@ -127,14 +127,51 @@ function MessagingInterface() {
     // If user is not admin, filter out unknown contacts
     if (!isAdmin) {
       messagesToShow = messages.filter((msg) => {
-        // Only show messages from known contacts (don't start with "Unknown")
-        return !msg.contact_name?.startsWith("Unknown");
+        // Only show messages from known contacts
+        // Filter out messages that:
+        // 1. Have contact_name starting with "Unknown"
+        // 2. Have no contact_name (incoming messages from unknown numbers/emails)
+        // 3. Are from phone numbers or emails not in our contacts list
+        if (msg.contact_name?.startsWith("Unknown")) return false;
+        if (!msg.contact_name && msg.direction === "incoming") return false;
+
+        // Additional check: ensure the from_number/to_number matches a known contact
+        if (msg.direction === "incoming" && msg.from_number) {
+          const isKnownContact = contacts.some(
+            (contact) =>
+              contact.phone === msg.from_number ||
+              contact.email === msg.from_number
+          );
+          if (!isKnownContact) return false;
+        }
+
+        return true;
       });
     }
 
     // Apply contact filter if selected
     if (showAllMessages || !selectedContact) {
       return messagesToShow;
+    }
+
+    // Special handling for "Unknown" contacts filter (admin only)
+    if (selectedContact.name === "Unknown") {
+      return messages.filter((msg) => {
+        // Show messages from unknown sources
+        if (msg.contact_name?.startsWith("Unknown")) return true;
+        if (!msg.contact_name && msg.direction === "incoming") return true;
+
+        if (msg.direction === "incoming" && msg.from_number) {
+          const isKnownContact = contacts.some(
+            (contact) =>
+              contact.phone === msg.from_number ||
+              contact.email === msg.from_number
+          );
+          return !isKnownContact;
+        }
+
+        return false;
+      });
     }
 
     // Filter messages for selected contact
@@ -153,9 +190,20 @@ function MessagingInterface() {
 
     // If not admin, exclude unknown contacts from count
     if (!isAdmin) {
-      messagesToCount = messages.filter(
-        (msg) => !msg.contact_name?.startsWith("Unknown")
-      );
+      messagesToCount = messages.filter((msg) => {
+        // Same filtering logic as above
+        if (msg.contact_name?.startsWith("Unknown")) return false;
+        if (!msg.contact_name && msg.direction === "incoming") return false;
+
+        if (msg.direction === "incoming" && msg.from_number) {
+          const isKnownContact = contacts.some(
+            (c) => c.phone === msg.from_number || c.email === msg.from_number
+          );
+          if (!isKnownContact) return false;
+        }
+
+        return true;
+      });
     }
 
     return messagesToCount.filter(
@@ -164,6 +212,30 @@ function MessagingInterface() {
         msg.from_number === contact.phone ||
         msg.to_number === contact.phone
     ).length;
+  };
+
+  // Get count of messages from unknown contacts (admin only)
+  const getUnknownMessageCount = () => {
+    if (!isAdmin) return 0;
+    return messages.filter((msg) => {
+      // Count messages that are from unknown sources:
+      // 1. Contact name starts with "Unknown"
+      // 2. No contact name and incoming message
+      // 3. Incoming message from number/email not in contacts
+      if (msg.contact_name?.startsWith("Unknown")) return true;
+      if (!msg.contact_name && msg.direction === "incoming") return true;
+
+      if (msg.direction === "incoming" && msg.from_number) {
+        const isKnownContact = contacts.some(
+          (contact) =>
+            contact.phone === msg.from_number ||
+            contact.email === msg.from_number
+        );
+        return !isKnownContact;
+      }
+
+      return false;
+    }).length;
   };
 
   useEffect(() => {
@@ -216,6 +288,7 @@ function MessagingInterface() {
               <span className="sm:hidden">👥</span>
               <span className="hidden sm:inline">👥 CONTACTS</span>
             </Button>
+
             <Button
               onClick={() => router.push("/")}
               size="sm"
@@ -287,42 +360,73 @@ function MessagingInterface() {
                     </Button>
                   );
                 })}
+
+                {/* Admin: Show unknown contacts filter */}
+                {isAdmin && getUnknownMessageCount() > 0 && (
+                  <Button
+                    onClick={() => {
+                      setSelectedContact({
+                        id: "unknown",
+                        name: "Unknown",
+                        phone: "",
+                        emoji: "❓",
+                        approved: false,
+                      } as Contact);
+                      setShowAllMessages(false);
+                    }}
+                    variant={
+                      selectedContact?.name === "Unknown"
+                        ? "default"
+                        : "outline"
+                    }
+                    size="sm"
+                    className={`font-mono text-xs ${
+                      selectedContact?.name === "Unknown"
+                        ? "bg-yellow-500 text-black"
+                        : "border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+                    }`}
+                  >
+                    ❓ Unknown ({getUnknownMessageCount()})
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Send Message Form - Only show when contact is selected */}
-        {selectedContact && !showAllMessages && (
-          <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-green-400 font-mono text-lg flex items-center gap-2">
-                💬 Send to {selectedContact.emoji} {selectedContact.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={sendMessage}>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Input
-                    type="text"
-                    placeholder={`Message ${selectedContact.name}...`}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    disabled={loading}
-                    className="flex-1 bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500 text-sm"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={loading || !message.trim()}
-                    className="bg-green-500 hover:bg-green-600 text-black font-mono font-bold px-6 sm:px-8 whitespace-nowrap"
-                  >
-                    {loading ? "SENDING..." : "SEND"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
+        {/* Send Message Form - Only show when contact is selected and not "Unknown" */}
+        {selectedContact &&
+          !showAllMessages &&
+          selectedContact.name !== "Unknown" && (
+            <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-green-400 font-mono text-lg flex items-center gap-2">
+                  💬 Send to {selectedContact.emoji} {selectedContact.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={sendMessage}>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      type="text"
+                      placeholder={`Message ${selectedContact.name}...`}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      disabled={loading}
+                      className="flex-1 bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500 text-sm"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={loading || !message.trim()}
+                      className="bg-green-500 hover:bg-green-600 text-black font-mono font-bold px-6 sm:px-8 whitespace-nowrap"
+                    >
+                      {loading ? "SENDING..." : "SEND"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Quick Message for All Messages View */}
         {showAllMessages && (
@@ -330,6 +434,28 @@ function MessagingInterface() {
             <CardContent className="pt-4 sm:pt-6">
               <div className="text-center text-green-400/70 text-sm">
                 💡 Select a contact above to send a new message
+                {isAdmin && getUnknownMessageCount() > 0 && (
+                  <span className="block mt-2 text-yellow-400/70">
+                    ⚠️ {getUnknownMessageCount()} messages from unknown contacts
+                    (Admin view only)
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Admin notice for Unknown contacts */}
+        {selectedContact?.name === "Unknown" && (
+          <Card className="mb-4 sm:mb-6 bg-yellow-950/30 border-yellow-500/30">
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="text-center text-yellow-400 text-sm">
+                ⚠️ Viewing messages from unknown contacts (Admin only)
+                <br />
+                <span className="text-yellow-400/70 text-xs">
+                  These are messages from phone numbers/emails not in your
+                  contact list
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -353,7 +479,7 @@ function MessagingInterface() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto scrollbar-thin scrollbar-track-zinc-800 scrollbar-thumb-green-500/50 hover:scrollbar-thumb-green-500/70 px-2">
               {filteredMessages.length === 0 ? (
                 <p className="text-zinc-500 text-center font-mono text-sm py-8">
                   {showAllMessages
@@ -366,17 +492,21 @@ function MessagingInterface() {
                 filteredMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`p-3 sm:p-4 rounded-lg border transition-all hover:scale-[1.01] ${
+                    className={`p-3 sm:p-4 rounded-lg border transition-all hover:scale-[1.01] w-full ${
                       msg.direction === "outgoing"
-                        ? "bg-green-950/30 border-green-500/50 ml-0 sm:ml-8"
-                        : "bg-blue-950/30 border-blue-500/50 mr-0 sm:mr-8"
+                        ? "bg-green-950/30 border-green-500/50"
+                        : msg.contact_name?.startsWith("Unknown")
+                        ? "bg-yellow-950/30 border-yellow-500/50"
+                        : "bg-blue-950/30 border-blue-500/50"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2 space-y-1 sm:space-y-0">
+                    <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
                       <span
                         className={`text-xs font-mono font-bold ${
                           msg.direction === "outgoing"
                             ? "text-green-400"
+                            : msg.contact_name?.startsWith("Unknown")
+                            ? "text-yellow-400"
                             : "text-blue-400"
                         }`}
                       >
@@ -396,8 +526,18 @@ function MessagingInterface() {
                             {msg.from_number?.includes("@") ? "EMAIL" : "SMS"}
                           </span>
                         )}
+                        {/* Show phone/email for unknown contacts in admin view */}
+                        {isAdmin && msg.contact_name?.startsWith("Unknown") && (
+                          <span className="ml-2 text-yellow-400/60 text-xs break-all">
+                            (
+                            {msg.direction === "outgoing"
+                              ? msg.to_number
+                              : msg.from_number}
+                            )
+                          </span>
+                        )}
                       </span>
-                      <span className="text-xs text-zinc-500 font-mono">
+                      <span className="text-xs text-zinc-500 font-mono whitespace-nowrap">
                         {new Date(msg.timestamp).toLocaleString()}
                       </span>
                     </div>

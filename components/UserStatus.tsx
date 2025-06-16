@@ -1,4 +1,4 @@
-// components/UserStatus.tsx - Fixed to read authentication properly
+// components/UserStatus.tsx - Fixed hydration with proper SSR handling
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,10 +13,40 @@ interface UserProfile {
 export function UserStatus() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Update cookie expiration on user activity
+  const updateCookieExpiration = () => {
+    if (typeof window === "undefined") return;
+
+    const authCookie = document.cookie
+      .split(";")
+      .find((cookie) => cookie.trim().startsWith("pait_auth="));
+
+    const userCookie = document.cookie
+      .split(";")
+      .find((cookie) => cookie.trim().startsWith("pait_user="));
+
+    if (authCookie && userCookie) {
+      const expirationTime = new Date();
+      expirationTime.setHours(expirationTime.getHours() + 4); // Reset to 4 hours from now
+
+      const authValue = authCookie.split("=")[1];
+      const userValue = userCookie.split("=")[1];
+
+      // Re-set cookies with new expiration
+      document.cookie = `pait_auth=${authValue}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+      document.cookie = `pait_user=${userValue}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+    }
+  };
 
   useEffect(() => {
+    // Mark as client-side to prevent hydration mismatch
+    setIsClient(true);
+
     const updateUserStatus = () => {
-      // Check if we have auth cookie
+      if (typeof window === "undefined") return;
+
       const authCookie = document.cookie
         .split(";")
         .find((cookie) => cookie.trim().startsWith("pait_auth="));
@@ -27,7 +57,6 @@ export function UserStatus() {
         return;
       }
 
-      // Check for user info cookie
       const userCookie = document.cookie
         .split(";")
         .find((cookie) => cookie.trim().startsWith("pait_user="));
@@ -39,44 +68,87 @@ export function UserStatus() {
           setAuthenticated(true);
         } catch (error) {
           console.error("Error parsing user cookie:", error);
-          setAuthenticated(false);
-          setUser(null);
+          checkUserViaAPI();
         }
       } else {
-        // Fallback: try to get user info from auth API
-        fetch("/api/auth")
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.authenticated && data.user) {
-              setUser(data.user);
-              setAuthenticated(true);
+        checkUserViaAPI();
+      }
+    };
 
-              // Set the user cookie for future reads
-              document.cookie = `pait_user=${JSON.stringify(
-                data.user
-              )}; path=/; max-age=86400`;
-            } else {
-              setAuthenticated(false);
-              setUser(null);
-            }
-          })
-          .catch(() => {
+    const checkUserViaAPI = () => {
+      fetch("/api/auth")
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            setAuthenticated(true);
+
+            // Set the user cookie for future reads
+            const expirationTime = new Date();
+            expirationTime.setHours(expirationTime.getHours() + 4);
+
+            document.cookie = `pait_user=${JSON.stringify(
+              data.user
+            )}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+          } else {
             setAuthenticated(false);
             setUser(null);
-          });
-      }
+          }
+        })
+        .catch(() => {
+          setAuthenticated(false);
+          setUser(null);
+        });
     };
 
     // Check immediately
     updateUserStatus();
 
-    // Set up a listener for changes (when user logs in/out)
-    const interval = setInterval(updateUserStatus, 2000);
+    // Set up activity listeners to extend session on user interaction
+    const activityEvents = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
 
-    return () => clearInterval(interval);
-  }, []);
+    const handleActivity = () => {
+      if (authenticated) {
+        updateCookieExpiration();
+      }
+    };
 
-  // Show loading state initially
+    // Add activity listeners
+    activityEvents.forEach((event) => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Check user status periodically
+    const interval = setInterval(updateUserStatus, 30000); // Check every 30 seconds
+
+    return () => {
+      clearInterval(interval);
+      // Remove activity listeners
+      activityEvents.forEach((event) => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+    };
+  }, [authenticated]);
+
+  // Prevent hydration mismatch by showing consistent content during SSR
+  if (!isClient) {
+    return (
+      <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
+        <span className="text-green-400/60">guest</span>
+        <span className="text-green-500/80">@pait.in</span>
+        <span className="text-green-400/80">:~$</span>
+      </span>
+    );
+  }
+
+  // Show loading state initially (client-side only)
   if (authenticated === null) {
     return (
       <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">

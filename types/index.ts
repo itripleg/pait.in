@@ -3,6 +3,7 @@ export interface Contact {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   emoji?: string;
   approved: boolean;
 }

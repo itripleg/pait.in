@@ -1,17 +1,15 @@
-// middleware.ts - Fixed to work with new user system and prevent loops
+// middleware.ts - Clean version with proper redirect handling
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes that require authentication
-const protectedRoutes = ["/messaging", "/contacts", "/admin"];
+const protectedRoutes = ["/messaging", "/contacts"];
 
 // Routes that require SMS opt-in (only messaging for now)
 const optInRoutes = ["/messaging"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  console.log("Middleware running for:", pathname);
 
   // Skip middleware for static files, API routes, and auth pages
   if (
@@ -28,9 +26,6 @@ export function middleware(request: NextRequest) {
   const authToken = request.cookies.get("pait_auth")?.value;
   const hasOptedIn = request.cookies.get("pait_optin")?.value === "true";
 
-  console.log("Auth token:", authToken ? "present" : "missing");
-  console.log("Opted in:", hasOptedIn);
-
   // Check if route needs authentication
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
@@ -38,15 +33,10 @@ export function middleware(request: NextRequest) {
 
   if (isProtectedRoute) {
     if (!authToken) {
-      console.log("No auth token, redirecting to login");
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
-
-    // Validate the token against our user system
-    // For now, we'll let the API routes handle validation
-    // since we don't want to import user management here
   }
 
   // Check if route needs SMS opt-in
@@ -55,7 +45,6 @@ export function middleware(request: NextRequest) {
   if (needsOptIn && authToken) {
     // Only check opt-in if user is authenticated
     if (!hasOptedIn) {
-      console.log("User not opted in, redirecting to opt-in");
       const optInUrl = new URL("/opt-in", request.url);
       optInUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(optInUrl);

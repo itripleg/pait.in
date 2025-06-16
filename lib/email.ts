@@ -21,8 +21,10 @@ export async function sendEmail({
 }: EmailOptions) {
   const msg = {
     to: to,
-    from: from || "joshua.bell.828@gmail.com", // Your verified sender
-    replyTo: replyTo || "pait@mail.pait.in", // Replies go to your domain!
+    // from: from || "joshua.bell.828@gmail.com", // Your verified sender
+    from: from || "Paitin@pait.in",
+    replyTo: replyTo || "pai@pait.in", // Replies go to your domain!
+    // replyTo: replyTo || "paitin@mail.pait.in", // Replies go to your domain!
     subject: subject,
     text: text,
     html: `

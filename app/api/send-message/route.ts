@@ -1,8 +1,9 @@
-// app/api/send-message/route.ts - Updated to use combined messaging
+// app/api/send-message/route.ts - Fixed to use user management system
 import { NextRequest, NextResponse } from "next/server";
 import { sendMessageToContact } from "../../../lib/messaging";
 import { saveMessage, initDB } from "../../../lib/db";
 import { getContactByName } from "../../../lib/contacts";
+import { findUserByPassword } from "../../../lib/user-management";
 
 export async function POST(request: NextRequest) {
   await initDB();
@@ -10,8 +11,17 @@ export async function POST(request: NextRequest) {
   // Get auth token from cookie
   const authToken = request.cookies.get("pait_auth")?.value;
 
-  if (!authToken || authToken !== process.env.APP_PASSWORD) {
+  if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Validate using user management system
+  const user = findUserByPassword(authToken);
+  if (!user) {
+    return NextResponse.json(
+      { error: "Invalid authentication" },
+      { status: 401 }
+    );
   }
 
   const { message, contactName } = await request.json();
@@ -42,7 +52,7 @@ export async function POST(request: NextRequest) {
     const results = await sendMessageToContact({
       contact,
       message,
-      senderName: "Dad", // You can make this dynamic based on user
+      senderName: user.name, // Use actual user name
     });
 
     // Count successful deliveries
