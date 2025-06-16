@@ -1,7 +1,7 @@
 // app/login/page.tsx - Clean version with idle-based cookie expiration
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,36 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Check if user is already authenticated and redirect
+  useEffect(() => {
+    const checkAuthAndRedirect = () => {
+      if (typeof window !== "undefined") {
+        const authCookie = document.cookie
+          .split(";")
+          .find((cookie) => cookie.trim().startsWith("pait_auth="));
+
+        if (authCookie) {
+          console.log("DEBUG - User already authenticated, redirecting...");
+          const redirectTo = getRedirectParam();
+
+          if (redirectTo && redirectTo !== "/") {
+            console.log("DEBUG - Auto-redirecting to:", redirectTo);
+            router.push(redirectTo);
+          } else {
+            console.log("DEBUG - Auto-redirecting to home");
+            router.push("/");
+          }
+        }
+      }
+    };
+
+    // Check immediately and after a short delay
+    checkAuthAndRedirect();
+    const timeout = setTimeout(checkAuthAndRedirect, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [router]);
 
   // Get redirect parameter directly from URL
   const getRedirectParam = () => {
