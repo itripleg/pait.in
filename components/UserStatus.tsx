@@ -34,9 +34,15 @@ export function UserStatus() {
       const authValue = authCookie.split("=")[1];
       const userValue = userCookie.split("=")[1];
 
+      // Use same cookie settings as login
+      const isProduction = window.location.protocol === "https:";
+      const cookieOptions = isProduction
+        ? `path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`
+        : `path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+
       // Re-set cookies with new expiration
-      document.cookie = `pait_auth=${authValue}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
-      document.cookie = `pait_user=${userValue}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+      document.cookie = `pait_auth=${authValue}; ${cookieOptions}`;
+      document.cookie = `pait_user=${userValue}; ${cookieOptions}`;
     }
   };
 
@@ -87,9 +93,14 @@ export function UserStatus() {
             const expirationTime = new Date();
             expirationTime.setHours(expirationTime.getHours() + 4);
 
+            const isProduction = window.location.protocol === "https:";
+            const cookieOptions = isProduction
+              ? `path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`
+              : `path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+
             document.cookie = `pait_user=${JSON.stringify(
               data.user
-            )}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+            )}; ${cookieOptions}`;
           } else {
             setAuthenticated(false);
             setUser(null);

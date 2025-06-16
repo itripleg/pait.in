@@ -76,10 +76,17 @@ export default function LoginPage() {
     const expirationTime = new Date();
     expirationTime.setHours(expirationTime.getHours() + 4); // 4 hours from now
 
-    const isSecure = window.location.protocol === "https:";
-    const cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict${
-      isSecure ? "; secure" : ""
-    }`;
+    // Different settings for production vs development
+    const isProduction = window.location.protocol === "https:";
+    let cookieString;
+
+    if (isProduction) {
+      // Production settings - more restrictive but necessary for HTTPS
+      cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`;
+    } else {
+      // Development settings
+      cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
+    }
 
     console.log("DEBUG - Setting cookie:", cookieString);
     document.cookie = cookieString;
@@ -93,6 +100,7 @@ export default function LoginPage() {
           "DEBUG - Cookie failed to set! Current cookies:",
           document.cookie
         );
+        console.error("DEBUG - Attempted cookie string:", cookieString);
       }
     }, 100);
   };
