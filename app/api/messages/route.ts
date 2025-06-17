@@ -7,6 +7,22 @@ export async function GET(request: NextRequest) {
   // Get auth token from cookie
   const authToken = request.cookies.get("pait_auth")?.value;
 
+  // Production debugging - log what cookies we're receiving
+  if (process.env.NODE_ENV === "production") {
+    console.log(
+      "PROD DEBUG - /api/messages - All cookies:",
+      request.cookies.toString()
+    );
+    console.log(
+      "PROD DEBUG - /api/messages - Auth token:",
+      authToken ? "present" : "missing"
+    );
+    console.log(
+      "PROD DEBUG - /api/messages - Headers:",
+      Object.fromEntries(request.headers.entries())
+    );
+  }
+
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

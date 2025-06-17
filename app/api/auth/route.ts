@@ -1,4 +1,4 @@
-// app/api/auth/route.ts - Enhanced authentication
+// app/api/auth/route.ts - Fixed with consistent cookie settings
 import { NextRequest, NextResponse } from "next/server";
 import { findUserByPassword } from "../../../lib/user-management";
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    // Set auth cookie
+    // Create response first
     const response = NextResponse.json({
       success: true,
       message: `Welcome ${user.name}!`,
@@ -29,16 +29,34 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set secure cookie with password (we validate this on each request)
-    response.cookies.set("pait_auth", password, {
-      httpOnly: false, // Allow client access for now
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 86400, // 24 hours
-    });
+    // Set cookies with consistent Lax policy for better compatibility
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOptions = {
+      httpOnly: false, // Allow client access for user status checking
+      secure: isProduction,
+      sameSite: "lax" as const, // Use Lax for better cross-site compatibility
+      maxAge: 14400, // 4 hours in seconds
+      path: "/",
+    };
+
+    // Set auth cookie
+    response.cookies.set("pait_auth", password, cookieOptions);
+
+    // Set user info cookie for client-side access
+    response.cookies.set(
+      "pait_user",
+      JSON.stringify({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        emoji: user.emoji,
+      }),
+      cookieOptions
+    );
 
     return response;
   } catch (error) {
+    console.error("Authentication error:", error);
     return NextResponse.json(
       { error: "Authentication failed" },
       { status: 500 }

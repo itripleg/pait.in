@@ -1,4 +1,4 @@
-// app/login/page.tsx - Clean version with idle-based cookie expiration
+// app/login/page.tsx - Fixed version with proper cookie handling and redirect
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,10 +27,10 @@ export default function LoginPage() {
 
           if (redirectTo && redirectTo !== "/") {
             console.log("DEBUG - Auto-redirecting to:", redirectTo);
-            router.push(redirectTo);
+            window.location.href = redirectTo; // Use window.location for reliability
           } else {
             console.log("DEBUG - Auto-redirecting to home");
-            router.push("/");
+            window.location.href = "/";
           }
         }
       }
@@ -41,7 +41,7 @@ export default function LoginPage() {
     const timeout = setTimeout(checkAuthAndRedirect, 1000);
 
     return () => clearTimeout(timeout);
-  }, [router]);
+  }, []);
 
   // Get redirect parameter directly from URL
   const getRedirectParam = () => {
@@ -53,7 +53,7 @@ export default function LoginPage() {
       console.log("DEBUG - Parsed redirect:", redirect);
 
       // Fallback: if no redirect param but we came from a protected route,
-      // check the referrer or use sessionStorage
+      // check the referrer
       if (redirect === "/" && document.referrer) {
         const referrerUrl = new URL(document.referrer);
         const referrerPath = referrerUrl.pathname;
@@ -71,22 +71,16 @@ export default function LoginPage() {
     return "/";
   };
 
-  // Set cookie with idle timeout (expires after 4 hours of no activity)
+  // Improved cookie setting with consistent SameSite policy
   const setAuthCookie = (name: string, value: string) => {
     const expirationTime = new Date();
     expirationTime.setHours(expirationTime.getHours() + 4); // 4 hours from now
 
-    // Different settings for production vs development
+    // Use Lax for better cross-site compatibility while maintaining security
     const isProduction = window.location.protocol === "https:";
-    let cookieString;
-
-    if (isProduction) {
-      // Production settings - more restrictive but necessary for HTTPS
-      cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`;
-    } else {
-      // Development settings
-      cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
-    }
+    const cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=lax${
+      isProduction ? "; secure" : ""
+    }`;
 
     console.log("DEBUG - Setting cookie:", cookieString);
     document.cookie = cookieString;
@@ -111,8 +105,8 @@ export default function LoginPage() {
     setError("");
 
     const redirectTo = getRedirectParam();
-    console.log("Production debug - redirect param:", redirectTo);
-    console.log("Production debug - current URL:", window.location.href);
+    console.log("DEBUG - Starting login process");
+    console.log("DEBUG - Redirect target:", redirectTo);
 
     try {
       const response = await fetch("/api/auth", {
@@ -123,51 +117,47 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Production debug - login successful for:", data.user.name);
+        console.log("DEBUG - Login successful for:", data.user.name);
 
-        // Set auth cookie with secure settings for production
-        const isProduction = window.location.protocol === "https:";
-        const cookieOptions = `path=/; max-age=14400; samesite=strict${
-          isProduction ? "; secure" : ""
-        }`;
+        // Set cookies with consistent Lax policy
+        setAuthCookie("pait_auth", password);
+        setAuthCookie(
+          "pait_user",
+          JSON.stringify({
+            id: data.user.id,
+            name: data.user.name,
+            emoji: data.user.emoji,
+            role: data.user.role,
+          })
+        );
 
-        document.cookie = `pait_auth=${password}; ${cookieOptions}`;
-        document.cookie = `pait_user=${JSON.stringify({
-          id: data.user.id,
-          name: data.user.name,
-          emoji: data.user.emoji,
-          role: data.user.role,
-        })}; ${cookieOptions}`;
+        console.log("DEBUG - Cookies set, waiting before redirect");
 
-        console.log("Production debug - cookies set");
-        console.log("Production debug - attempting redirect to:", redirectTo);
+        // Wait longer to ensure cookies are properly set before redirecting
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // More robust redirect logic
-        setTimeout(() => {
-          if (
-            redirectTo &&
-            redirectTo !== "/" &&
-            redirectTo !== window.location.pathname
-          ) {
-            console.log(
-              "Production debug - redirecting to intended page:",
-              redirectTo
-            );
-            window.location.href = redirectTo;
+        // Force a fresh page load to ensure middleware sees the cookies
+        if (
+          redirectTo &&
+          redirectTo !== "/" &&
+          redirectTo !== window.location.pathname
+        ) {
+          console.log("DEBUG - Redirecting to intended page:", redirectTo);
+          window.location.href = redirectTo;
+        } else {
+          console.log("DEBUG - Using role-based redirect");
+          if (data.user.role === "admin") {
+            window.location.href = "/contacts";
           } else {
-            console.log("Production debug - using role-based redirect");
-            if (data.user.role === "admin") {
-              window.location.href = "/contacts";
-            } else {
-              window.location.href = "/";
-            }
+            window.location.href = "/";
           }
-        }, 500); // Slightly longer delay for production
+        }
       } else {
-        setError("Invalid password");
+        const errorData = await response.json();
+        setError(errorData.error || "Invalid password");
       }
     } catch (error) {
-      console.error("Production debug - login error:", error);
+      console.error("DEBUG - Login error:", error);
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
