@@ -1,4 +1,4 @@
-// app/login/page.tsx - Fixed version with proper cookie handling and redirect
+// app/login/page.tsx - Fixed version to prevent infinite loops
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,45 +11,66 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true); // Add checking state
   const router = useRouter();
 
-  // Check if user is already authenticated and redirect
+  // Check if user is already authenticated - but only once
   useEffect(() => {
-    const checkAuthAndRedirect = () => {
-      if (typeof window !== "undefined") {
+    const checkAuthOnce = async () => {
+      if (typeof window === "undefined") return;
+
+      try {
+        // Check via API first (most reliable)
+        const response = await fetch("/api/auth");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated && data.user) {
+            console.log(
+              "DEBUG - User already authenticated via API, redirecting..."
+            );
+            const redirectTo = getRedirectParam();
+            if (redirectTo && redirectTo !== "/") {
+              router.replace(redirectTo); // Use replace instead of push
+            } else if (data.user.role === "admin") {
+              router.replace("/contacts");
+            } else {
+              router.replace("/");
+            }
+            return;
+          }
+        }
+
+        // Fallback: check cookies
         const authCookie = document.cookie
           .split(";")
           .find((cookie) => cookie.trim().startsWith("pait_auth="));
 
         if (authCookie) {
-          console.log("DEBUG - User already authenticated, redirecting...");
+          console.log("DEBUG - User authenticated via cookie, redirecting...");
           const redirectTo = getRedirectParam();
-
           if (redirectTo && redirectTo !== "/") {
-            console.log("DEBUG - Auto-redirecting to:", redirectTo);
-            window.location.href = redirectTo; // Use window.location for reliability
+            router.replace(redirectTo);
           } else {
-            console.log("DEBUG - Auto-redirecting to home");
-            window.location.href = "/";
+            router.replace("/");
           }
+          return;
         }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      } finally {
+        setIsChecking(false);
       }
     };
 
-    // Check immediately and after a short delay
-    checkAuthAndRedirect();
-    const timeout = setTimeout(checkAuthAndRedirect, 1000);
-
-    return () => clearTimeout(timeout);
-  }, []);
+    // Only run this check once on mount
+    checkAuthOnce();
+  }, []); // Empty dependency array - only run once
 
   // Get redirect parameter directly from URL
   const getRedirectParam = () => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect") || "/";
-      console.log("DEBUG - Raw URL:", window.location.href);
-      console.log("DEBUG - Search params:", window.location.search);
       console.log("DEBUG - Parsed redirect:", redirect);
 
       // Fallback: if no redirect param but we came from a protected route,
@@ -59,7 +80,6 @@ export default function LoginPage() {
         const referrerPath = referrerUrl.pathname;
         console.log("DEBUG - Referrer path:", referrerPath);
 
-        // If referrer was a protected route, use that
         if (referrerPath === "/messaging" || referrerPath === "/contacts") {
           console.log("DEBUG - Using referrer as redirect:", referrerPath);
           return referrerPath;
@@ -76,7 +96,6 @@ export default function LoginPage() {
     const expirationTime = new Date();
     expirationTime.setHours(expirationTime.getHours() + 4); // 4 hours from now
 
-    // Use Lax for better cross-site compatibility while maintaining security
     const isProduction = window.location.protocol === "https:";
     const cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=lax${
       isProduction ? "; secure" : ""
@@ -94,13 +113,16 @@ export default function LoginPage() {
           "DEBUG - Cookie failed to set! Current cookies:",
           document.cookie
         );
-        console.error("DEBUG - Attempted cookie string:", cookieString);
       }
     }, 100);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent multiple submissions
+    if (loading) return;
+
     setLoading(true);
     setError("");
 
@@ -133,23 +155,23 @@ export default function LoginPage() {
 
         console.log("DEBUG - Cookies set, waiting before redirect");
 
-        // Wait longer to ensure cookies are properly set before redirecting
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Wait for cookies to be set before redirecting
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Force a fresh page load to ensure middleware sees the cookies
+        // Use router.replace to prevent back button issues
         if (
           redirectTo &&
           redirectTo !== "/" &&
           redirectTo !== window.location.pathname
         ) {
           console.log("DEBUG - Redirecting to intended page:", redirectTo);
-          window.location.href = redirectTo;
+          router.replace(redirectTo);
         } else {
           console.log("DEBUG - Using role-based redirect");
           if (data.user.role === "admin") {
-            window.location.href = "/contacts";
+            router.replace("/contacts");
           } else {
-            window.location.href = "/";
+            router.replace("/");
           }
         }
       } else {
@@ -163,6 +185,23 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="text-green-400 animate-pulse">
+                Checking authentication...
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const redirectParam = getRedirectParam();
 
