@@ -76,6 +76,20 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Theme Variables - Default to Matrix Green */
+  --theme-primary: #00ff41;
+  --theme-primary-dark: #00cc33;
+  --theme-secondary: #00ff4180;
+  --theme-background: #000000;
+  --theme-background-secondary: #0a0a0a;
+  --theme-text: #00ff41;
+  --theme-text-secondary: #00ff4170;
+  --theme-border: #00ff4130;
+  --theme-accent: #00ff41;
+  --theme-success: #00ff41;
+  --theme-warning: #ffff00;
+  --theme-error: #ff4444;
 }
 
 .dark {
@@ -118,5 +132,98 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Use theme variables for dynamic theming */
+    background-color: var(--theme-background) !important;
+    color: var(--theme-text) !important;
   }
+}
+
+/* Theme-specific utility classes */
+.theme-bg {
+  background-color: var(--theme-background);
+}
+
+.theme-bg-secondary {
+  background-color: var(--theme-background-secondary);
+}
+
+.theme-text {
+  color: var(--theme-text);
+}
+
+.theme-text-secondary {
+  color: var(--theme-text-secondary);
+}
+
+.theme-primary {
+  color: var(--theme-primary);
+}
+
+.theme-primary-bg {
+  background-color: var(--theme-primary);
+}
+
+.theme-border {
+  border-color: var(--theme-border);
+}
+
+.theme-accent {
+  color: var(--theme-accent);
+}
+
+.theme-success {
+  color: var(--theme-success);
+}
+
+.theme-warning {
+  color: var(--theme-warning);
+}
+
+.theme-error {
+  color: var(--theme-error);
+}
+
+/* Terminal animations */
+@keyframes terminal-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.terminal-cursor::after {
+  content: "█";
+  animation: terminal-blink 1s infinite;
+  color: var(--theme-primary);
+}
+
+/* Matrix rain effect for backgrounds */
+@keyframes matrix-rain {
+  0% { transform: translateY(-100vh); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.matrix-rain {
+  position: absolute;
+  color: var(--theme-primary);
+  font-family: monospace;
+  font-size: 14px;
+  animation: matrix-rain 3s linear infinite;
+}
+
+/* Glitch effect for error states */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch {
+  animation: glitch 0.3s ease-in-out infinite;
+}
+
+/* Theme transition animations */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

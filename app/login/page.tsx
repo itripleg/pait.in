@@ -1,4 +1,4 @@
-// app/login/page.tsx - Fixed version to prevent infinite loops
+// app/login/page.tsx - Production debugging version
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,77 +11,117 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isChecking, setIsChecking] = useState(true); // Add checking state
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
+
+  // Add debug logging function
+  const addDebug = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    setDebugInfo((prev) => [...prev.slice(-10), logMessage]); // Keep last 10 messages
+  };
 
   // Check if user is already authenticated - but only once
   useEffect(() => {
     const checkAuthOnce = async () => {
-      if (typeof window === "undefined") return;
+      addDebug("Starting auth check...");
+
+      if (typeof window === "undefined") {
+        addDebug("Window is undefined, skipping auth check");
+        return;
+      }
 
       try {
+        addDebug("Checking current URL: " + window.location.href);
+        addDebug("Current cookies: " + document.cookie);
+
         // Check via API first (most reliable)
-        const response = await fetch("/api/auth");
+        addDebug("Making API call to /api/auth...");
+        const response = await fetch("/api/auth", {
+          method: "GET",
+          credentials: "include", // Important for production
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
+
+        addDebug(`API response status: ${response.status}`);
+
         if (response.ok) {
           const data = await response.json();
+          addDebug(`API response data: ${JSON.stringify(data)}`);
+
           if (data.authenticated && data.user) {
-            console.log(
-              "DEBUG - User already authenticated via API, redirecting..."
-            );
+            addDebug("User already authenticated via API, redirecting...");
             const redirectTo = getRedirectParam();
-            if (redirectTo && redirectTo !== "/") {
-              router.replace(redirectTo); // Use replace instead of push
-            } else if (data.user.role === "admin") {
-              router.replace("/contacts");
-            } else {
-              router.replace("/");
-            }
+            addDebug(`Redirect target: ${redirectTo}`);
+
+            // Use window.location for production reliability
+            setTimeout(() => {
+              addDebug("Executing redirect...");
+              if (redirectTo && redirectTo !== "/") {
+                window.location.href = redirectTo;
+              } else if (data.user.role === "admin") {
+                window.location.href = "/contacts";
+              } else {
+                window.location.href = "/";
+              }
+            }, 1000);
             return;
+          } else {
+            addDebug("API response indicates not authenticated");
           }
+        } else {
+          addDebug(`API call failed with status: ${response.status}`);
         }
 
-        // Fallback: check cookies
+        // Fallback: check cookies directly
         const authCookie = document.cookie
           .split(";")
           .find((cookie) => cookie.trim().startsWith("pait_auth="));
 
         if (authCookie) {
-          console.log("DEBUG - User authenticated via cookie, redirecting...");
-          const redirectTo = getRedirectParam();
-          if (redirectTo && redirectTo !== "/") {
-            router.replace(redirectTo);
-          } else {
-            router.replace("/");
-          }
-          return;
+          addDebug("Found auth cookie, but API said not authenticated");
+          addDebug("This suggests a cookie/API mismatch issue");
+
+          // Clear potentially stale cookies
+          document.cookie =
+            "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          document.cookie =
+            "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          addDebug("Cleared stale cookies");
+        } else {
+          addDebug("No auth cookie found");
         }
       } catch (error) {
+        addDebug(`Auth check error: ${error}`);
         console.error("Auth check failed:", error);
       } finally {
+        addDebug("Auth check completed, showing login form");
         setIsChecking(false);
       }
     };
 
     // Only run this check once on mount
     checkAuthOnce();
-  }, []); // Empty dependency array - only run once
+  }, []); // Empty dependency array
 
-  // Get redirect parameter directly from URL
   const getRedirectParam = () => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect") || "/";
-      console.log("DEBUG - Parsed redirect:", redirect);
+      addDebug(`Parsed redirect param: ${redirect}`);
 
-      // Fallback: if no redirect param but we came from a protected route,
-      // check the referrer
+      // Fallback: if no redirect param but we came from a protected route
       if (redirect === "/" && document.referrer) {
         const referrerUrl = new URL(document.referrer);
         const referrerPath = referrerUrl.pathname;
-        console.log("DEBUG - Referrer path:", referrerPath);
+        addDebug(`Referrer path: ${referrerPath}`);
 
         if (referrerPath === "/messaging" || referrerPath === "/contacts") {
-          console.log("DEBUG - Using referrer as redirect:", referrerPath);
+          addDebug(`Using referrer as redirect: ${referrerPath}`);
           return referrerPath;
         }
       }
@@ -91,28 +131,35 @@ export default function LoginPage() {
     return "/";
   };
 
-  // Improved cookie setting with consistent SameSite policy
   const setAuthCookie = (name: string, value: string) => {
     const expirationTime = new Date();
-    expirationTime.setHours(expirationTime.getHours() + 4); // 4 hours from now
+    expirationTime.setHours(expirationTime.getHours() + 4);
 
+    // Production-specific cookie settings
     const isProduction = window.location.protocol === "https:";
-    const cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}; samesite=lax${
-      isProduction ? "; secure" : ""
-    }`;
+    const domain = window.location.hostname;
 
-    console.log("DEBUG - Setting cookie:", cookieString);
+    // More explicit cookie string for production
+    let cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}`;
+
+    if (isProduction) {
+      cookieString += "; secure; samesite=lax";
+      // Don't set domain for production - let it default to current domain
+    } else {
+      cookieString += "; samesite=strict";
+    }
+
+    addDebug(`Setting cookie: ${name} with string: ${cookieString}`);
     document.cookie = cookieString;
 
     // Verify cookie was set
     setTimeout(() => {
       const cookieCheck = document.cookie.includes(`${name}=`);
-      console.log(`DEBUG - Cookie ${name} set successfully:`, cookieCheck);
+      addDebug(
+        `Cookie ${name} verification: ${cookieCheck ? "SUCCESS" : "FAILED"}`
+      );
       if (!cookieCheck) {
-        console.error(
-          "DEBUG - Cookie failed to set! Current cookies:",
-          document.cookie
-        );
+        addDebug(`Current cookies after attempt: ${document.cookie}`);
       }
     }, 100);
   };
@@ -120,28 +167,37 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prevent multiple submissions
-    if (loading) return;
+    if (loading) {
+      addDebug("Login already in progress, ignoring submission");
+      return;
+    }
 
     setLoading(true);
     setError("");
+    addDebug("Starting login process...");
 
     const redirectTo = getRedirectParam();
-    console.log("DEBUG - Starting login process");
-    console.log("DEBUG - Redirect target:", redirectTo);
 
     try {
+      addDebug("Making login API call...");
       const response = await fetch("/api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
+        credentials: "include", // Important for production
         body: JSON.stringify({ password }),
       });
 
+      addDebug(`Login API response status: ${response.status}`);
+
       if (response.ok) {
         const data = await response.json();
-        console.log("DEBUG - Login successful for:", data.user.name);
+        addDebug(`Login successful for: ${data.user.name}`);
+        addDebug(`User role: ${data.user.role}`);
 
-        // Set cookies with consistent Lax policy
+        // Set cookies with production-safe settings
         setAuthCookie("pait_auth", password);
         setAuthCookie(
           "pait_user",
@@ -153,33 +209,38 @@ export default function LoginPage() {
           })
         );
 
-        console.log("DEBUG - Cookies set, waiting before redirect");
+        addDebug("Cookies set, waiting before redirect...");
 
-        // Wait for cookies to be set before redirecting
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Wait longer in production for cookie propagation
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        // Use router.replace to prevent back button issues
+        addDebug("Executing redirect...");
+
+        // Force reload approach for production
         if (
           redirectTo &&
           redirectTo !== "/" &&
           redirectTo !== window.location.pathname
         ) {
-          console.log("DEBUG - Redirecting to intended page:", redirectTo);
-          router.replace(redirectTo);
+          addDebug(`Redirecting to intended page: ${redirectTo}`);
+          window.location.href = redirectTo;
         } else {
-          console.log("DEBUG - Using role-based redirect");
+          addDebug("Using role-based redirect");
           if (data.user.role === "admin") {
-            router.replace("/contacts");
+            window.location.href = "/contacts";
           } else {
-            router.replace("/");
+            window.location.href = "/";
           }
         }
       } else {
         const errorData = await response.json();
-        setError(errorData.error || "Invalid password");
+        const errorMsg = errorData.error || "Invalid password";
+        addDebug(`Login failed: ${errorMsg}`);
+        setError(errorMsg);
       }
     } catch (error) {
-      console.error("DEBUG - Login error:", error);
+      addDebug(`Login error: ${error}`);
+      console.error("Login error:", error);
       setError("Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -193,9 +254,17 @@ export default function LoginPage() {
         <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
           <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-green-400 animate-pulse">
+              <div className="text-green-400 animate-pulse mb-4">
                 Checking authentication...
               </div>
+              {/* Show debug info in development */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="text-xs text-left text-zinc-400 max-h-32 overflow-y-auto">
+                  {debugInfo.map((info, i) => (
+                    <div key={i}>{info}</div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -252,10 +321,27 @@ export default function LoginPage() {
             </Button>
           </form>
 
+          {/* Debug Panel - Show in production temporarily */}
+          {debugInfo.length > 0 && (
+            <div className="mt-6 p-3 bg-zinc-800 rounded border border-zinc-600">
+              <h4 className="text-xs text-green-400 mb-2">Debug Log:</h4>
+              <div className="text-xs text-zinc-400 max-h-32 overflow-y-auto space-y-1">
+                {debugInfo.map((info, i) => (
+                  <div key={i} className="font-mono">
+                    {info}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 text-center text-xs text-green-400/50">
             <p>🔒 Secure access required</p>
             <p className="mt-1 text-green-400/30">
               Session expires after 4 hours of inactivity
+            </p>
+            <p className="mt-1 text-yellow-400/50">
+              Production Debug Mode Active
             </p>
           </div>
         </CardContent>
