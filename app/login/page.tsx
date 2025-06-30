@@ -1,13 +1,13 @@
-// app/login/page.tsx - Fixed version with no render loops
+// app/login/page.tsx - Fixed with Suspense boundary
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { Suspense, useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function LoginPage() {
+function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -111,7 +111,7 @@ export default function LoginPage() {
     return () => {
       isMounted = false;
     };
-  }, [redirectParam]); // Only depend on memoized redirectParam
+  }, [redirectParam]);
 
   const handleLogin = useCallback(
     async (e: React.FormEvent) => {
@@ -250,5 +250,27 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function LoginPageFallback() {
+  return (
+    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="text-green-400 animate-pulse">Loading login...</div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginPageFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }
