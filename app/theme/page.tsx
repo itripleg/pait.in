@@ -18,10 +18,7 @@ import {
   CloudOff,
   Cloud,
 } from "lucide-react";
-import {
-  motion,
-  animate,
-} from "framer-motion";
+import { motion, animate } from "framer-motion";
 
 interface ThemeColor {
   name: string;
@@ -293,14 +290,12 @@ const ThemeCustomizer = () => {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-black text-primary font-mono">
+      <div className="min-h-screen text-primary font-mono">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="text-center">
               <Palette className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-              <p className="text-primary/70 text-lg">
-                Loading Theme Studio...
-              </p>
+              <p className="text-primary/70 text-lg">Loading Theme Studio...</p>
             </div>
           </div>
         </div>
@@ -309,7 +304,7 @@ const ThemeCustomizer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-primary font-mono">
+    <div className="min-h-screen text-primary font-mono">
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <motion.div

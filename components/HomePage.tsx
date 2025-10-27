@@ -72,7 +72,9 @@ export default function HomePage() {
             >
               <CardContent className="flex flex-col items-center justify-center h-full p-6">
                 <div className="text-4xl mb-4">💬</div>
-                <h2 className="text-xl font-bold text-primary mb-2">EMAIL</h2>
+                <h2 className="text-xl font-bold text-primary mb-2">
+                  MESSAGING
+                </h2>
                 <p className="text-primary/70 text-xs text-center">
                   Send secure messages
                 </p>

@@ -290,14 +290,14 @@ function MessagingInterface() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-primary font-mono p-2 sm:p-4">
+    <div className="min-h-screen text-primary font-mono p-2 sm:p-4">
       {process.env.NODE_ENV === "production" && <AuthDebug />}
       <div className="max-w-5xl mx-auto">
         {/* Mobile-Friendly Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-primary/30 space-y-3 sm:space-y-0">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold text-primary">
-              💬 EMAIL
+              💬 MESSAGING
             </h1>
             <div className="flex items-center gap-2 text-sm text-primary/70 mt-1">
               <span>

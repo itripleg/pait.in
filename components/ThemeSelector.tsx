@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useColorTheme } from "@/app/theme/ColorThemeProvider";
 import { presetThemes } from "@/app/theme/presetThemes";
 import { motion, AnimatePresence } from "motion/react";
+import Link from "next/link";
 
 interface ThemeSelectorProps {
   compact?: boolean;
@@ -39,16 +40,17 @@ export function ThemeSelector({
     const currentSat = colors[0]?.saturation;
     const currentLight = colors[0]?.lightness;
 
-    const matchedTheme = presetThemes.find(theme =>
-      theme.colors[0].hue === currentHue &&
-      theme.colors[0].saturation === currentSat &&
-      theme.colors[0].lightness === currentLight
+    const matchedTheme = presetThemes.find(
+      (theme) =>
+        theme.colors[0].hue === currentHue &&
+        theme.colors[0].saturation === currentSat &&
+        theme.colors[0].lightness === currentLight
     );
 
     return matchedTheme?.name || "Custom";
   };
 
-  const applyPreset = (preset: typeof presetThemes[0]) => {
+  const applyPreset = (preset: (typeof presetThemes)[0]) => {
     const newColors = colors.map((color, index) => ({
       ...color,
       ...preset.colors[index],
@@ -59,15 +61,16 @@ export function ThemeSelector({
   if (showInHeader) {
     return (
       <div className="relative">
-        <Button
-          onClick={() => setIsOpen(!isOpen)}
-          variant="outline"
-          size="sm"
-          className="border-primary/30 text-primary hover:bg-primary/10 font-mono text-xs"
-        >
-          🎨 {getCurrentThemeName()}
-        </Button>
-
+        <Link href="/theme">
+          <Button
+            // onClick={() => setIsOpen(!isOpen)}
+            variant="outline"
+            size="sm"
+            className="border-primary/30 text-primary hover:bg-primary/10 font-mono text-xs cursor-pointer"
+          >
+            🎨 {getCurrentThemeName()}
+          </Button>
+        </Link>
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -99,7 +102,11 @@ export function ThemeSelector({
                         }}
                         className={`
                           w-full p-2 rounded-lg border transition-all duration-200 text-left
-                          ${isSelected ? "border-primary bg-primary/10" : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"}
+                          ${
+                            isSelected
+                              ? "border-primary bg-primary/10"
+                              : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+                          }
                         `}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -109,7 +116,9 @@ export function ThemeSelector({
                             {theme.name}
                           </span>
                           {isSelected && (
-                            <span className="text-xs font-mono text-primary">✓</span>
+                            <span className="text-xs font-mono text-primary">
+                              ✓
+                            </span>
                           )}
                         </div>
                         <div className="flex gap-1 mb-1">
