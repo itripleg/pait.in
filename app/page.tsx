@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import SplashScreen from "@/components/SplashScreen";
 import HomePage from "@/components/HomePage";
 

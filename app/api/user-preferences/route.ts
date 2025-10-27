@@ -1,13 +1,15 @@
-// app/api/user-preferences/route.ts - User preference storage
+// app/api/user-preferences/route.ts - Next.js 16 with async cookies() API
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { findUserByPassword } from "../../../lib/user-management";
 
 // In-memory storage for user preferences (replace with database in production)
 const userPreferences = new Map<string, any>();
 
-export async function GET(request: NextRequest) {
-  // Get auth token from cookie
-  const authToken = request.cookies.get("pait_auth")?.value;
+export async function GET() {
+  // Get auth token from cookie using async cookies() API
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,8 +30,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Get auth token from cookie
-  const authToken = request.cookies.get("pait_auth")?.value;
+  // Get auth token from cookie using async cookies() API
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

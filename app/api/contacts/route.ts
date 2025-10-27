@@ -1,14 +1,16 @@
-// app/api/contacts/route.ts - Enhanced with CRUD operations
+// app/api/contacts/route.ts - Next.js 16 with async cookies() API
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { approvedContacts, EnhancedContact } from "../../../lib/contacts";
 import { findUserByPassword } from "../../../lib/user-management";
 
 // In-memory storage for now - can move to Firebase later
 const dynamicContacts: EnhancedContact[] = [...approvedContacts];
 
-export async function GET(request: NextRequest) {
-  // Get auth token from cookie
-  const authToken = request.cookies.get("pait_auth")?.value;
+export async function GET() {
+  // Get auth token from cookie using async cookies() API
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,7 +35,8 @@ export async function GET(request: NextRequest) {
 
 // POST - Add new contact (admin only)
 export async function POST(request: NextRequest) {
-  const authToken = request.cookies.get("pait_auth")?.value;
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -95,7 +98,8 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update existing contact (admin only)
 export async function PUT(request: NextRequest) {
-  const authToken = request.cookies.get("pait_auth")?.value;
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -143,7 +147,8 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Remove contact (admin only)
 export async function DELETE(request: NextRequest) {
-  const authToken = request.cookies.get("pait_auth")?.value;
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

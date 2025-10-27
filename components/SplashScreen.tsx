@@ -1,7 +1,7 @@
 // components/SplashScreen.tsx
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 
 interface SplashScreenProps {
@@ -38,7 +38,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: showLogo ? 1 : 0, rotate: showLogo ? 0 : -180 }}
           transition={{
-            type: "spring",
+            type: "spring" as const,
             stiffness: 200,
             damping: 20,
             duration: 1,

@@ -1,25 +1,19 @@
-// app/api/messages/route.ts - Fixed to use user management system
-import { NextRequest, NextResponse } from "next/server";
+// app/api/messages/route.ts - Next.js 16 with async cookies() API
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getMessages, initDB } from "../../../lib/db";
 import { findUserByPassword } from "../../../lib/user-management";
 
-export async function GET(request: NextRequest) {
-  // Get auth token from cookie
-  const authToken = request.cookies.get("pait_auth")?.value;
+export async function GET() {
+  // Get auth token from cookie using async cookies() API
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   // Production debugging - log what cookies we're receiving
   if (process.env.NODE_ENV === "production") {
     console.log(
-      "PROD DEBUG - /api/messages - All cookies:",
-      request.cookies.toString()
-    );
-    console.log(
       "PROD DEBUG - /api/messages - Auth token:",
       authToken ? "present" : "missing"
-    );
-    console.log(
-      "PROD DEBUG - /api/messages - Headers:",
-      Object.fromEntries(request.headers.entries())
     );
   }
 

@@ -1,7 +1,7 @@
 // components/HomePage.tsx
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { hasOptedIn } from "@/lib/storage";
@@ -35,7 +35,7 @@ export default function HomePage() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 15,
       },
@@ -43,7 +43,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
+    <div className="min-h-screen text-green-400 font-mono flex items-center justify-center p-4">
       <motion.div
         className="max-w-2xl w-full text-center"
         variants={containerVariants}

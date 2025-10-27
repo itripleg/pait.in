@@ -1,5 +1,6 @@
-// app/api/auth/route.ts - Fixed with consistent cookie settings
+// app/api/auth/route.ts - Next.js 16 with async cookies() API
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { findUserByPassword } from "../../../lib/user-management";
 
 export async function POST(request: NextRequest) {
@@ -17,18 +18,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
-    // Create response first
-    const response = NextResponse.json({
-      success: true,
-      message: `Welcome ${user.name}!`,
-      user: {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        emoji: user.emoji,
-      },
-    });
-
     // Set cookies with consistent Lax policy for better compatibility
     const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
@@ -39,11 +28,14 @@ export async function POST(request: NextRequest) {
       path: "/",
     };
 
+    // Use async cookies() API (Next.js 16)
+    const cookieStore = await cookies();
+
     // Set auth cookie
-    response.cookies.set("pait_auth", password, cookieOptions);
+    cookieStore.set("pait_auth", password, cookieOptions);
 
     // Set user info cookie for client-side access
-    response.cookies.set(
+    cookieStore.set(
       "pait_user",
       JSON.stringify({
         id: user.id,
@@ -54,7 +46,16 @@ export async function POST(request: NextRequest) {
       cookieOptions
     );
 
-    return response;
+    return NextResponse.json({
+      success: true,
+      message: `Welcome ${user.name}!`,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        emoji: user.emoji,
+      },
+    });
   } catch (error) {
     console.error("Authentication error:", error);
     return NextResponse.json(
@@ -65,8 +66,9 @@ export async function POST(request: NextRequest) {
 }
 
 // GET method to check current auth status
-export async function GET(request: NextRequest) {
-  const authToken = request.cookies.get("pait_auth")?.value;
+export async function GET() {
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ authenticated: false }, { status: 401 });

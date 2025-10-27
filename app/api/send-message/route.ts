@@ -1,5 +1,6 @@
-// app/api/send-message/route.ts - Fixed to use user management system
+// app/api/send-message/route.ts - Next.js 16 with async cookies() API
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { sendMessageToContact } from "../../../lib/messaging";
 import { saveMessage, initDB } from "../../../lib/db";
 import { getContactByName } from "../../../lib/contacts";
@@ -8,8 +9,9 @@ import { findUserByPassword } from "../../../lib/user-management";
 export async function POST(request: NextRequest) {
   await initDB();
 
-  // Get auth token from cookie
-  const authToken = request.cookies.get("pait_auth")?.value;
+  // Get auth token from cookie using async cookies() API
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("pait_auth")?.value;
 
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

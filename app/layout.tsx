@@ -41,10 +41,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased font-mono overflow-x-hidden`}
-        style={{
-          backgroundColor: "var(--theme-background)",
-          color: "var(--theme-text)",
-        }}
+        // style={{
+        //   backgroundColor: "var(--theme-background)",
+        //   color: "var(--theme-text)",
+        // }}
       >
         <ThemeProvider>
           <div className="min-h-screen relative">
@@ -158,7 +158,7 @@ export default function RootLayout({
             </div>
 
             {/* Main Content Area with proper spacing */}
-            <div className="relative z-10 pt-14 sm:pt-20 pb-16 sm:pb-20 min-h-screen">
+            <div className="relative z-10 pt-14 sm:pt-20 pb-16 sm:pb-20 min-h-screen ">
               {children}
             </div>
 

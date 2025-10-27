@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn build)",
+      "Bash(yarn.cmd build:*)",
+      "mcp__next-devtools__nextjs_docs",
+      "Bash(mkdir:*)",
+      "Bash(move:*)",
+      "Bash(move \"D:\\git\\pait.in\\app\\contacts\\page.tsx\" \"D:\\git\\pait.in\\app\\(protected)\\contacts\\page.tsx\")",
+      "Bash(ls:*)",
+      "Bash(test:*)",
+      "Bash(yarn.cmd dev:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
