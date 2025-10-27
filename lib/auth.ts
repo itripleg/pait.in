@@ -62,12 +62,28 @@ export function getCurrentUser(): UserProfile {
   );
 
   if (userCookie) {
-    const userId = userCookie.split("=")[1];
-    return FAMILY_PROFILES[userId] || FAMILY_PROFILES.guest;
+    try {
+      const cookieValue = userCookie.split("=")[1];
+      const decodedValue = decodeURIComponent(cookieValue);
+      const userInfo = JSON.parse(decodedValue);
+      // Map the cookie data to UserProfile format
+      return {
+        username: userInfo.id,
+        displayName: userInfo.name,
+        role: userInfo.role.toUpperCase() as "ADMIN" | "USER" | "CHILD" | "GUEST",
+        emoji: userInfo.emoji,
+        permissions: userInfo.role === "admin"
+          ? ["messaging", "contacts", "admin", "settings"]
+          : ["messaging", "contacts"],
+      };
+    } catch (error) {
+      console.error("Error parsing user cookie:", error);
+      return FAMILY_PROFILES.guest;
+    }
   }
 
-  // Default to dad if authenticated but no specific user set
-  return FAMILY_PROFILES.dad;
+  // Default to guest if no cookie found
+  return FAMILY_PROFILES.guest;
 }
 
 export function setCurrentUser(userId: string) {

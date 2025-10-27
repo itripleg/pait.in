@@ -51,7 +51,9 @@ export function UserStatus() {
 
       if (userCookie) {
         try {
-          const userInfo = JSON.parse(userCookie.split("=")[1]);
+          const cookieValue = userCookie.split("=")[1];
+          const decodedValue = decodeURIComponent(cookieValue);
+          const userInfo = JSON.parse(decodedValue);
           setUser(userInfo);
           setAuthenticated(true);
         } catch (error) {

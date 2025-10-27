@@ -38,7 +38,9 @@ export function useUserRole() {
 
           if (userCookie) {
             try {
-              const userInfoFromCookie = JSON.parse(userCookie.split("=")[1]);
+              const cookieValue = userCookie.split("=")[1];
+              const decodedValue = decodeURIComponent(cookieValue);
+              const userInfoFromCookie = JSON.parse(decodedValue);
               setUserRole(userInfoFromCookie.role || "user");
               setUserInfo(userInfoFromCookie);
             } catch (error) {
