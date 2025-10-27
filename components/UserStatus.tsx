@@ -15,34 +15,16 @@ export function UserStatus() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [isClient, setIsClient] = useState(false);
 
-  // Update cookie expiration on user activity
-  const updateCookieExpiration = () => {
-    if (typeof window === "undefined") return;
-
-    const authCookie = document.cookie
-      .split(";")
-      .find((cookie) => cookie.trim().startsWith("pait_auth="));
-
-    const userCookie = document.cookie
-      .split(";")
-      .find((cookie) => cookie.trim().startsWith("pait_user="));
-
-    if (authCookie && userCookie) {
-      const expirationTime = new Date();
-      expirationTime.setHours(expirationTime.getHours() + 4); // Reset to 4 hours from now
-
-      const authValue = authCookie.split("=")[1];
-      const userValue = userCookie.split("=")[1];
-
-      // Use same cookie settings as login
-      const isProduction = window.location.protocol === "https:";
-      const cookieOptions = isProduction
-        ? `path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`
-        : `path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
-
-      // Re-set cookies with new expiration
-      document.cookie = `pait_auth=${authValue}; ${cookieOptions}`;
-      document.cookie = `pait_user=${userValue}; ${cookieOptions}`;
+  // Update cookie expiration on user activity (via API call to server)
+  const updateCookieExpiration = async () => {
+    try {
+      // Let server handle cookie updates
+      await fetch("/api/auth/refresh", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Failed to refresh session:", error);
     }
   };
 
@@ -88,19 +70,7 @@ export function UserStatus() {
           if (data.authenticated && data.user) {
             setUser(data.user);
             setAuthenticated(true);
-
-            // Set the user cookie for future reads
-            const expirationTime = new Date();
-            expirationTime.setHours(expirationTime.getHours() + 4);
-
-            const isProduction = window.location.protocol === "https:";
-            const cookieOptions = isProduction
-              ? `path=/; expires=${expirationTime.toUTCString()}; secure; samesite=lax`
-              : `path=/; expires=${expirationTime.toUTCString()}; samesite=strict`;
-
-            document.cookie = `pait_user=${JSON.stringify(
-              data.user
-            )}; ${cookieOptions}`;
+            // Cookies are already set by the server via Set-Cookie header
           } else {
             setAuthenticated(false);
             setUser(null);

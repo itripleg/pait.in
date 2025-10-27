@@ -36,23 +36,6 @@ function LoginForm() {
     return redirect;
   }, [searchParams]);
 
-  // Stable cookie setting function
-  const setAuthCookie = useCallback((name: string, value: string) => {
-    const expirationTime = new Date();
-    expirationTime.setHours(expirationTime.getHours() + 4);
-
-    const isProduction = window.location.protocol === "https:";
-
-    let cookieString = `${name}=${value}; path=/; expires=${expirationTime.toUTCString()}`;
-
-    if (isProduction) {
-      cookieString += "; secure; samesite=lax";
-    } else {
-      cookieString += "; samesite=strict";
-    }
-
-    document.cookie = cookieString;
-  }, []);
 
   // Check authentication only once on mount
   useEffect(() => {
@@ -136,20 +119,9 @@ function LoginForm() {
         if (response.ok) {
           const data = await response.json();
 
-          // Set cookies
-          setAuthCookie("pait_auth", password);
-          setAuthCookie(
-            "pait_user",
-            JSON.stringify({
-              id: data.user.id,
-              name: data.user.name,
-              emoji: data.user.emoji,
-              role: data.user.role,
-            })
-          );
-
-          // Wait for cookies to be set
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // Cookies are set by the server via Set-Cookie header
+          // Wait briefly to ensure cookies are processed by browser
+          await new Promise((resolve) => setTimeout(resolve, 100));
 
           // Redirect based on role or intended destination
           if (
@@ -174,7 +146,7 @@ function LoginForm() {
         setLoading(false);
       }
     },
-    [loading, password, redirectParam, setAuthCookie]
+    [loading, password, redirectParam]
   );
 
   // Show loading state while checking authentication

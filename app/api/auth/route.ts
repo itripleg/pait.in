@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Set cookies with consistent Lax policy for better compatibility
     const isProduction = process.env.NODE_ENV === "production";
     const cookieOptions = {
-      httpOnly: false, // Allow client access for user status checking
+      httpOnly: false, // Allow client read access for UI components
       secure: isProduction,
       sameSite: "lax" as const, // Use Lax for better cross-site compatibility
       maxAge: 14400, // 4 hours in seconds
