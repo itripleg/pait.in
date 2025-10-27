@@ -52,7 +52,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: showLogo ? 0 : 50, opacity: showLogo ? 1 : 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="text-6xl font-bold font-mono text-green-400 mb-2"
+          className="text-6xl font-bold font-mono text-primary mb-2"
         >
           PAIT
         </motion.h1>
@@ -61,7 +61,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: showLogo ? 0 : 30, opacity: showLogo ? 1 : 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-green-400 font-mono text-lg"
+          className="text-primary font-mono text-lg"
         >
           Personal Assistant & Information Terminal
         </motion.p>

@@ -9,7 +9,8 @@
       "Bash(move \"D:\\git\\pait.in\\app\\contacts\\page.tsx\" \"D:\\git\\pait.in\\app\\(protected)\\contacts\\page.tsx\")",
       "Bash(ls:*)",
       "Bash(test:*)",
-      "Bash(yarn.cmd dev:*)"
+      "Bash(yarn.cmd dev:*)",
+      "Bash(yarn add:*)"
     ],
     "deny": [],
     "ask": []

@@ -123,10 +123,10 @@ export function UserStatus() {
   // Prevent hydration mismatch by showing consistent content during SSR
   if (!isClient) {
     return (
-      <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
-        <span className="text-green-400/60">guest</span>
-        <span className="text-green-500/80">@pait.in</span>
-        <span className="text-green-400/80">:~$</span>
+      <span className="text-primary font-mono text-xs sm:text-sm tracking-wider">
+        <span className="text-primary/60">guest</span>
+        <span className="text-primary/80">@pait.in</span>
+        <span className="text-primary/80">:~$</span>
       </span>
     );
   }
@@ -134,7 +134,7 @@ export function UserStatus() {
   // Show loading state initially (client-side only)
   if (authenticated === null) {
     return (
-      <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
+      <span className="text-primary font-mono text-xs sm:text-sm tracking-wider">
         <span className="animate-pulse">loading@pait.in:~$</span>
       </span>
     );
@@ -143,10 +143,10 @@ export function UserStatus() {
   // Show guest state if not authenticated
   if (!authenticated || !user) {
     return (
-      <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
-        <span className="text-green-400/60">guest</span>
-        <span className="text-green-500/80">@pait.in</span>
-        <span className="text-green-400/80">:~$</span>
+      <span className="text-primary font-mono text-xs sm:text-sm tracking-wider">
+        <span className="text-primary/60">guest</span>
+        <span className="text-primary/80">@pait.in</span>
+        <span className="text-primary/80">:~$</span>
         <span className="ml-2 text-yellow-500/60 text-xs hidden sm:inline">
           [UNAUTHORIZED]
         </span>
@@ -156,13 +156,13 @@ export function UserStatus() {
   }
 
   return (
-    <span className="text-green-400 font-mono text-xs sm:text-sm tracking-wider">
-      <span className="text-green-400">{user.name.toLowerCase()}</span>
-      <span className="text-green-500/80">@pait.in</span>
-      <span className="text-green-400/80">:~$</span>
+    <span className="text-primary font-mono text-xs sm:text-sm tracking-wider">
+      <span className="text-primary">{user.name.toLowerCase()}</span>
+      <span className="text-primary/80">@pait.in</span>
+      <span className="text-primary/80">:~$</span>
 
       {/* Role indicator for desktop */}
-      <span className="ml-2 text-green-500/60 text-xs hidden sm:inline">
+      <span className="ml-2 text-primary/60 text-xs hidden sm:inline">
         [{user.role.toUpperCase()}]
       </span>
 

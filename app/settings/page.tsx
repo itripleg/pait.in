@@ -385,7 +385,7 @@ export default function SettingsPage() {
                   className="text-center pt-4"
                   style={{ color: "var(--theme-text-secondary)" }}
                 >
-                  <p>🔒 Secure • 👨‍👩‍👧‍👦 Family Safe • 🌟 Simple</p>
+                  {/* <p>🔒 Secure • 👨‍👩‍👧‍👦 Family Safe • 🌟 Simple</p> */}
                 </div>
               </div>
             </CardContent>

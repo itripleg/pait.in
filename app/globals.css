@@ -45,142 +45,47 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
 
-  /* Theme Variables - Default to Matrix Green */
-  --theme-primary: #00ff41;
-  --theme-primary-dark: #00cc33;
-  --theme-secondary: #00ff4180;
-  --theme-background: #000000;
-  --theme-background-secondary: #0a0a0a;
-  --theme-text: #00ff41;
-  --theme-text-secondary: #00ff4170;
-  --theme-border: #00ff4130;
-  --theme-accent: #00ff41;
-  --theme-success: #00ff41;
-  --theme-warning: #ffff00;
-  --theme-error: #ff4444;
+  /* ColorThemeProvider CSS Variables (HSL format) - Matrix Green Default */
+  --primary: 123 100% 50%; /* #00ff41 - Green */
+  --primary-foreground: 0 0% 0%; /* Black text on green */
+  --secondary: 0 0% 3%; /* #0a0a0a - Dark background */
+  --secondary-foreground: 123 100% 50%; /* Green text on dark */
+  --accent: 123 100% 25%; /* Darker green for accents */
+  --accent-foreground: 123 100% 90%; /* Light green text */
+  --foreground: 123 100% 50%; /* Green text */
+  --background: 0 0% 0%; /* Black background */
+  --card: 0 0% 4%; /* Slightly lighter than background */
+  --card-foreground: 123 100% 50%; /* Green text on cards */
+  --muted: 0 0% 10%; /* Muted backgrounds */
+  --muted-foreground: 123 100% 70%; /* Lighter green for muted text */
+  --border: 123 100% 20%; /* Green borders with transparency */
+  --input: 0 0% 10%; /* Dark inputs */
+  --ring: 123 100% 50%; /* Green focus rings */
+  --destructive: 0 100% 63%; /* Red for errors */
+  --destructive-foreground: 0 0% 100%; /* White on red */
+
+  /* Popover */
+  --popover: 0 0% 4%;
+  --popover-foreground: 123 100% 50%;
+
+  /* Charts */
+  --chart-1: 123 100% 50%;
+  --chart-2: 180 100% 50%;
+  --chart-3: 40 100% 50%;
+  --chart-4: 277 85% 63%;
+  --chart-5: 0 100% 63%;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    /* Use theme variables for dynamic theming */
-    background-color: var(--theme-background) !important;
-    color: var(--theme-text) !important;
+    background-color: #000000 !important; /* Keep black background */
+    color: hsl(var(--primary)) !important; /* Use theme primary color for text */
   }
-}
-
-/* Theme-specific utility classes */
-.theme-bg {
-  background-color: var(--theme-background);
-}
-
-.theme-bg-secondary {
-  background-color: var(--theme-background-secondary);
-}
-
-.theme-text {
-  color: var(--theme-text);
-}
-
-.theme-text-secondary {
-  color: var(--theme-text-secondary);
-}
-
-.theme-primary {
-  color: var(--theme-primary);
-}
-
-.theme-primary-bg {
-  background-color: var(--theme-primary);
-}
-
-.theme-border {
-  border-color: var(--theme-border);
-}
-
-.theme-accent {
-  color: var(--theme-accent);
-}
-
-.theme-success {
-  color: var(--theme-success);
-}
-
-.theme-warning {
-  color: var(--theme-warning);
-}
-
-.theme-error {
-  color: var(--theme-error);
 }
 
 /* Terminal animations */
@@ -192,7 +97,7 @@
 .terminal-cursor::after {
   content: "█";
   animation: terminal-blink 1s infinite;
-  color: var(--theme-primary);
+  @apply text-primary;
 }
 
 /* Matrix rain effect for backgrounds */
@@ -203,7 +108,7 @@
 
 .matrix-rain {
   position: absolute;
-  color: var(--theme-primary);
+  @apply text-primary;
   font-family: monospace;
   font-size: 14px;
   animation: matrix-rain 3s linear infinite;

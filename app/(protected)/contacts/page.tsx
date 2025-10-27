@@ -133,9 +133,9 @@ export default function ContactsPage() {
   // Show loading while determining user role
   if (userLoading || loading) {
     return (
-      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+      <div className="min-h-screen bg-black text-primary font-mono flex items-center justify-center">
         <div className="text-center">
-          <div className="text-green-400 animate-pulse">
+          <div className="text-primary animate-pulse">
             Loading contacts...
           </div>
         </div>
@@ -144,16 +144,16 @@ export default function ContactsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
+    <div className="min-h-screen bg-black text-primary font-mono p-2 sm:p-4">
       <div className="max-w-6xl mx-auto">
         {/* Mobile-Friendly Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-green-500/30 space-y-3 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-primary/30 space-y-3 sm:space-y-0">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">
               👥 CONTACTS{" "}
               {isAdmin && <span className="text-yellow-400">[ADMIN]</span>}
             </h1>
-            <p className="text-green-400/70 text-sm">
+            <p className="text-primary/70 text-sm">
               {isAdmin
                 ? "Manage your family contacts"
                 : "Your approved contacts"}
@@ -166,7 +166,7 @@ export default function ContactsPage() {
               onClick={() => router.push("/messaging")}
               size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs flex-1 sm:flex-none"
             >
               <span className="sm:hidden">💬</span>
               <span className="hidden sm:inline">💬 MESSAGES</span>
@@ -175,7 +175,7 @@ export default function ContactsPage() {
               onClick={() => router.push("/")}
               size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs flex-1 sm:flex-none"
             >
               <span className="sm:hidden">🏠</span>
               <span className="hidden sm:inline">🏠 HOME</span>
@@ -194,16 +194,16 @@ export default function ContactsPage() {
 
         {/* Status */}
         {status && (
-          <div className="mb-6 p-3 bg-zinc-900 border border-green-500/30 rounded-lg text-center">
-            <span className="text-green-400 font-mono text-sm">{status}</span>
+          <div className="mb-6 p-3 bg-zinc-900 border border-primary/30 rounded-lg text-center">
+            <span className="text-primary font-mono text-sm">{status}</span>
           </div>
         )}
 
         {/* Add New Contact - Admin Only */}
         {isAdmin && (
-          <Card className="mb-6 bg-zinc-900 border-green-500/30">
+          <Card className="mb-6 bg-zinc-900 border-primary/30">
             <CardHeader>
-              <CardTitle className="text-green-400 font-mono">
+              <CardTitle className="text-primary font-mono">
                 ➕ Add New Contact
               </CardTitle>
             </CardHeader>
@@ -215,7 +215,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, name: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
                 />
                 <Input
                   placeholder="Phone (+1234567890)"
@@ -223,7 +223,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, phone: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
                 />
                 <Input
                   placeholder="Email (optional)"
@@ -231,7 +231,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, email: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
                 />
                 <Input
                   placeholder="Emoji"
@@ -239,12 +239,12 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, emoji: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
                 />
                 <Button
                   onClick={addContact}
                   disabled={actionLoading}
-                  className="bg-green-500 hover:bg-green-600 text-black font-mono font-bold"
+                  className="bg-primary hover:bg-green-600 text-black font-mono font-bold"
                 >
                   {actionLoading ? "ADDING..." : "ADD"}
                 </Button>
@@ -256,9 +256,9 @@ export default function ContactsPage() {
         {/* Contacts Display */}
         {isAdmin ? (
           // Admin view - List with edit capabilities
-          <Card className="bg-zinc-900 border-green-500/30">
+          <Card className="bg-zinc-900 border-primary/30">
             <CardHeader>
-              <CardTitle className="text-green-400 font-mono">
+              <CardTitle className="text-primary font-mono">
                 📝 Manage Contacts
               </CardTitle>
             </CardHeader>
@@ -267,7 +267,7 @@ export default function ContactsPage() {
                 {contacts.map((contact) => (
                   <div
                     key={contact.id}
-                    className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-green-500/50 transition-colors"
+                    className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-primary/50 transition-colors"
                   >
                     {editingContact?.id === contact.id ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
@@ -279,7 +279,7 @@ export default function ContactsPage() {
                               name: e.target.value,
                             })
                           }
-                          className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                          className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                         />
                         <Input
                           value={editingContact.phone}
@@ -289,7 +289,7 @@ export default function ContactsPage() {
                               phone: e.target.value,
                             })
                           }
-                          className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                          className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                         />
                         <Input
                           value={editingContact.email || ""}
@@ -299,7 +299,7 @@ export default function ContactsPage() {
                               email: e.target.value,
                             })
                           }
-                          className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                          className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                           placeholder="Email (optional)"
                         />
                         <Input
@@ -310,14 +310,14 @@ export default function ContactsPage() {
                               emoji: e.target.value,
                             })
                           }
-                          className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                          className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                         />
                         <div className="flex gap-2">
                           <Button
                             onClick={() => saveContact(editingContact)}
                             size="sm"
                             disabled={actionLoading}
-                            className="bg-green-500 hover:bg-green-600 text-black font-mono"
+                            className="bg-primary hover:bg-green-600 text-black font-mono"
                           >
                             {actionLoading ? "SAVING..." : "SAVE"}
                           </Button>
@@ -336,10 +336,10 @@ export default function ContactsPage() {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">{contact.emoji}</span>
                           <div>
-                            <div className="font-bold text-green-400">
+                            <div className="font-bold text-primary">
                               {contact.name}
                             </div>
-                            <div className="text-sm text-green-400/70">
+                            <div className="text-sm text-primary/70">
                               {contact.phone}
                             </div>
                             {contact.email && (
@@ -357,7 +357,7 @@ export default function ContactsPage() {
                                 variant="outline"
                                 className={`text-xs font-mono ${
                                   method === "sms"
-                                    ? "border-green-500/50 text-green-400"
+                                    ? "border-primary/50 text-primary"
                                     : "border-blue-500/50 text-blue-400"
                                 }`}
                               >
@@ -368,7 +368,7 @@ export default function ContactsPage() {
                           <Button
                             onClick={() => handleMessageContact(contact)}
                             size="sm"
-                            className="bg-green-500 hover:bg-green-600 text-black font-mono text-xs"
+                            className="bg-primary hover:bg-green-600 text-black font-mono text-xs"
                           >
                             MESSAGE
                           </Button>
@@ -376,7 +376,7 @@ export default function ContactsPage() {
                             onClick={() => setEditingContact(contact)}
                             size="sm"
                             variant="outline"
-                            className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs"
+                            className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs"
                           >
                             EDIT
                           </Button>
@@ -394,24 +394,24 @@ export default function ContactsPage() {
             {contacts.map((contact) => (
               <Card
                 key={contact.id}
-                className="bg-zinc-900 border-green-500/30 hover:border-green-500/60 transition-all duration-300"
+                className="bg-zinc-900 border-primary/30 hover:border-primary/60 transition-all duration-300"
               >
                 <CardContent className="p-4 sm:p-6">
                   <div className="text-center">
                     <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">
                       {contact.emoji}
                     </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-green-400 mb-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-primary mb-2">
                       {contact.name}
                     </h3>
-                    <p className="text-green-400/70 text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
+                    <p className="text-primary/70 text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
                       {contact.phone
                         .replace("+1", "")
                         .replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3")}
                     </p>
                     <Button
                       onClick={() => handleMessageContact(contact)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold text-sm py-2"
+                      className="w-full bg-primary hover:bg-green-600 text-black font-mono font-bold text-sm py-2"
                     >
                       💬 MESSAGE
                     </Button>
@@ -424,7 +424,7 @@ export default function ContactsPage() {
 
         {contacts.length === 0 && !loading && (
           <div className="text-center py-12">
-            <div className="text-green-400/70">No approved contacts found</div>
+            <div className="text-primary/70">No approved contacts found</div>
           </div>
         )}
       </div>

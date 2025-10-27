@@ -36,7 +36,6 @@ function LoginForm() {
     return redirect;
   }, [searchParams]);
 
-
   // Check authentication only once on mount
   useEffect(() => {
     let isMounted = true;
@@ -152,11 +151,11 @@ function LoginForm() {
   // Show loading state while checking authentication
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
+      <div className="min-h-screen bg-black text-primary font-mono flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-zinc-900 border-primary/30">
           <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-green-400 animate-pulse">
+              <div className="text-primary animate-pulse">
                 Checking authentication...
               </div>
             </div>
@@ -167,13 +166,13 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
+    <div className="min-h-screen bg-black text-primary font-mono flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-zinc-900 border-primary/30">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-green-400">
+          <CardTitle className="text-2xl font-bold text-primary">
             🔐 PAIT LOGIN
           </CardTitle>
-          <p className="text-green-400/70 text-sm mt-2">
+          <p className="text-primary/70 text-sm mt-2">
             Personal Assistant & Information Terminal
           </p>
           {redirectParam && redirectParam !== "/" && (
@@ -192,7 +191,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
                 required
                 autoFocus
               />
@@ -207,15 +206,15 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={loading || !password.trim()}
-              className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold"
+              className="w-full bg-primary hover:bg-primary text-black font-mono font-bold"
             >
               {loading ? "AUTHENTICATING..." : "LOGIN"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-xs text-green-400/50">
+          <div className="mt-6 text-center text-xs text-primary/50">
             <p>🔒 Secure access required</p>
-            <p className="mt-1 text-green-400/30">
+            <p className="mt-1 text-primary/30">
               Session expires after 4 hours of inactivity
             </p>
           </div>
@@ -227,11 +226,11 @@ function LoginForm() {
 
 function LoginPageFallback() {
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-zinc-900 border-green-500/30">
+    <div className="min-h-screen bg-black text-primary font-mono flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-zinc-900 border-primary/30">
         <CardContent className="p-6">
           <div className="text-center">
-            <div className="text-green-400 animate-pulse">Loading login...</div>
+            <div className="text-primary animate-pulse">Loading login...</div>
           </div>
         </CardContent>
       </Card>

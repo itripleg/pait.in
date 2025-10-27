@@ -1,10 +1,11 @@
 // components/ThemeSelector.tsx - Theme selection UI
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTheme } from "./ThemeProvider";
+import { useColorTheme } from "@/app/theme/ColorThemeProvider";
+import { presetThemes } from "@/app/theme/presetThemes";
 import { motion, AnimatePresence } from "motion/react";
 
 interface ThemeSelectorProps {
@@ -16,16 +17,44 @@ export function ThemeSelector({
   compact = false,
   showInHeader = false,
 }: ThemeSelectorProps) {
-  const { currentTheme, setTheme, themes, isLoading } = useTheme();
+  const { colors, applyColors } = useColorTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
     return (
       <div className="animate-pulse">
         <div className="w-8 h-8 bg-zinc-700 rounded"></div>
       </div>
     );
   }
+
+  // Find current theme by matching colors
+  const getCurrentThemeName = () => {
+    const currentHue = colors[0]?.hue;
+    const currentSat = colors[0]?.saturation;
+    const currentLight = colors[0]?.lightness;
+
+    const matchedTheme = presetThemes.find(theme =>
+      theme.colors[0].hue === currentHue &&
+      theme.colors[0].saturation === currentSat &&
+      theme.colors[0].lightness === currentLight
+    );
+
+    return matchedTheme?.name || "Custom";
+  };
+
+  const applyPreset = (preset: typeof presetThemes[0]) => {
+    const newColors = colors.map((color, index) => ({
+      ...color,
+      ...preset.colors[index],
+    }));
+    applyColors(newColors);
+  };
 
   if (showInHeader) {
     return (
@@ -34,13 +63,9 @@ export function ThemeSelector({
           onClick={() => setIsOpen(!isOpen)}
           variant="outline"
           size="sm"
-          className="border-current text-current hover:bg-current/10 font-mono text-xs"
-          style={{
-            borderColor: "var(--theme-border)",
-            color: "var(--theme-text)",
-          }}
+          className="border-primary/30 text-primary hover:bg-primary/10 font-mono text-xs"
         >
-          🎨 {currentTheme.name}
+          🎨 {getCurrentThemeName()}
         </Button>
 
         <AnimatePresence>
@@ -52,34 +77,58 @@ export function ThemeSelector({
               transition={{ duration: 0.15 }}
               className="absolute top-full right-0 mt-2 z-50"
             >
-              <Card
-                className="w-64 border-current shadow-xl"
-                style={{
-                  backgroundColor: "var(--theme-background-secondary)",
-                  borderColor: "var(--theme-border)",
-                }}
-              >
+              <Card className="w-64 bg-black/95 border-primary/30 shadow-xl backdrop-blur-md">
                 <CardHeader className="pb-3">
-                  <CardTitle
-                    className="text-sm font-mono"
-                    style={{ color: "var(--theme-text)" }}
-                  >
+                  <CardTitle className="text-sm font-mono text-primary">
                     🎨 Choose Theme
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {themes.map((theme) => (
-                    <ThemeOption
-                      key={theme.id}
-                      theme={theme}
-                      isSelected={currentTheme.id === theme.id}
-                      onSelect={() => {
-                        setTheme(theme.id);
-                        setIsOpen(false);
-                      }}
-                      compact
-                    />
-                  ))}
+                  {presetThemes.map((theme) => {
+                    const isSelected =
+                      theme.colors[0].hue === colors[0]?.hue &&
+                      theme.colors[0].saturation === colors[0]?.saturation &&
+                      theme.colors[0].lightness === colors[0]?.lightness;
+
+                    return (
+                      <motion.button
+                        key={theme.name}
+                        onClick={() => {
+                          applyPreset(theme);
+                          setIsOpen(false);
+                        }}
+                        className={`
+                          w-full p-2 rounded-lg border transition-all duration-200 text-left
+                          ${isSelected ? "border-primary bg-primary/10" : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"}
+                        `}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-mono text-sm text-primary font-bold">
+                            {theme.name}
+                          </span>
+                          {isSelected && (
+                            <span className="text-xs font-mono text-primary">✓</span>
+                          )}
+                        </div>
+                        <div className="flex gap-1 mb-1">
+                          {theme.colors.map((color, i) => (
+                            <div
+                              key={i}
+                              className="w-3 h-3 rounded-full border border-primary/30"
+                              style={{
+                                backgroundColor: `hsl(${color.hue}deg ${color.saturation}% ${color.lightness}%)`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs font-mono text-primary/60">
+                          {theme.description}
+                        </p>
+                      </motion.button>
+                    );
+                  })}
                 </CardContent>
               </Card>
             </motion.div>
@@ -97,159 +146,6 @@ export function ThemeSelector({
     );
   }
 
-  if (compact) {
-    return (
-      <Card
-        className="border-current"
-        style={{
-          backgroundColor: "var(--theme-background-secondary)",
-          borderColor: "var(--theme-border)",
-        }}
-      >
-        <CardHeader>
-          <CardTitle
-            className="font-mono text-lg"
-            style={{ color: "var(--theme-text)" }}
-          >
-            🎨 Theme Selector
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {themes.map((theme) => (
-            <ThemeOption
-              key={theme.id}
-              theme={theme}
-              isSelected={currentTheme.id === theme.id}
-              onSelect={() => setTheme(theme.id)}
-              compact
-            />
-          ))}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card
-      className="border-current"
-      style={{
-        backgroundColor: "var(--theme-background-secondary)",
-        borderColor: "var(--theme-border)",
-      }}
-    >
-      <CardHeader>
-        <CardTitle
-          className="font-mono text-xl"
-          style={{ color: "var(--theme-text)" }}
-        >
-          🎨 Theme Selector
-        </CardTitle>
-        <p
-          className="text-sm font-mono"
-          style={{ color: "var(--theme-text-secondary)" }}
-        >
-          Choose your preferred color palette
-        </p>
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {themes.map((theme) => (
-          <ThemeOption
-            key={theme.id}
-            theme={theme}
-            isSelected={currentTheme.id === theme.id}
-            onSelect={() => setTheme(theme.id)}
-          />
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-interface ThemeOptionProps {
-  theme: any;
-  isSelected: boolean;
-  onSelect: () => void;
-  compact?: boolean;
-}
-
-function ThemeOption({
-  theme,
-  isSelected,
-  onSelect,
-  compact = false,
-}: ThemeOptionProps) {
-  return (
-    <motion.button
-      onClick={onSelect}
-      className={`
-        relative p-3 rounded-lg border-2 transition-all duration-200 w-full text-left
-        ${isSelected ? "ring-2 ring-offset-2" : "hover:scale-105"}
-        ${compact ? "p-2" : "p-4"}
-      `}
-      style={{
-        backgroundColor: theme.colors.backgroundSecondary,
-        borderColor: isSelected ? theme.colors.primary : theme.colors.border,
-        // ringColor: theme.colors.primary,
-        // ringOffsetColor: theme.colors.background,
-      }}
-      whileHover={{ scale: compact ? 1.02 : 1.05 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      {/* Color preview */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex gap-1">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: theme.colors.primary }}
-          />
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: theme.colors.accent }}
-          />
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: theme.colors.success }}
-          />
-        </div>
-        {isSelected && (
-          <div
-            className="text-xs font-mono"
-            style={{ color: theme.colors.primary }}
-          >
-            ✓ ACTIVE
-          </div>
-        )}
-      </div>
-
-      <div>
-        <h3
-          className={`font-mono font-bold ${compact ? "text-sm" : "text-base"}`}
-          style={{ color: theme.colors.text }}
-        >
-          {theme.name}
-        </h3>
-        {!compact && (
-          <p
-            className="text-xs font-mono mt-1"
-            style={{ color: theme.colors.textSecondary }}
-          >
-            {theme.description}
-          </p>
-        )}
-      </div>
-
-      {/* Sample text preview */}
-      <div className="mt-2 space-y-1">
-        <div className="text-xs font-mono" style={{ color: theme.colors.text }}>
-          user@pait.in:~$ echo &quot;hello world&quot;
-        </div>
-        <div
-          className="text-xs font-mono"
-          style={{ color: theme.colors.primary }}
-        >
-          hello world
-        </div>
-      </div>
-    </motion.button>
-  );
+  // Return null for compact mode (not used)
+  return null;
 }

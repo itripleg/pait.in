@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Contact, Message } from "@/types";
 import { useUserRole } from "@/lib/hooks/useUserRole";
+import DOMPurify from "isomorphic-dompurify";
 
 function MessagingInterface() {
   const router = useRouter();
@@ -21,6 +22,38 @@ function MessagingInterface() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showAllMessages, setShowAllMessages] = useState(true);
+
+  // Sanitize HTML content to prevent XSS attacks
+  const sanitizeHTML = (html: string) => {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        "p",
+        "br",
+        "strong",
+        "b",
+        "em",
+        "i",
+        "u",
+        "a",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "code",
+        "pre",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "span",
+        "div",
+      ],
+      ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+      ALLOW_DATA_ATTR: false,
+    });
+  };
 
   useEffect(() => {
     fetchMessages();
@@ -246,9 +279,9 @@ function MessagingInterface() {
   // Show loading while determining user role
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+      <div className="min-h-screen bg-black text-primary font-mono flex items-center justify-center">
         <div className="text-center">
-          <div className="text-green-400 animate-pulse">
+          <div className="text-primary animate-pulse">
             Loading user information...
           </div>
         </div>
@@ -257,14 +290,16 @@ function MessagingInterface() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono p-2 sm:p-4">
+    <div className="min-h-screen bg-black text-primary font-mono p-2 sm:p-4">
       {process.env.NODE_ENV === "production" && <AuthDebug />}
       <div className="max-w-5xl mx-auto">
         {/* Mobile-Friendly Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-green-500/30 space-y-3 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 pb-4 border-b border-primary/30 space-y-3 sm:space-y-0">
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold">💬 PAIGER</h1>
-            <div className="flex items-center gap-2 text-sm text-green-400/70 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">
+              💬 EMAIL
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-primary/70 mt-1">
               <span>
                 {showAllMessages
                   ? `All Messages (${filteredMessages.length})`
@@ -284,7 +319,7 @@ function MessagingInterface() {
               onClick={() => router.push("/contacts")}
               size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs flex-1 sm:flex-none"
             >
               <span className="sm:hidden">👥</span>
               <span className="hidden sm:inline">👥 CONTACTS</span>
@@ -294,7 +329,7 @@ function MessagingInterface() {
               onClick={() => router.push("/")}
               size="sm"
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs flex-1 sm:flex-none"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs flex-1 sm:flex-none"
             >
               <span className="sm:hidden">🏠</span>
               <span className="hidden sm:inline">🏠 HOME</span>
@@ -312,11 +347,11 @@ function MessagingInterface() {
         </div>
 
         {/* Contact Filter Bar */}
-        <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+        <Card className="mb-4 sm:mb-6 bg-zinc-900 border-primary/30">
           <CardContent className="pt-4 sm:pt-6">
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-green-400/70 whitespace-nowrap">
+                <span className="text-sm text-primary/70 whitespace-nowrap">
                   Filter:
                 </span>
                 <Button
@@ -328,8 +363,8 @@ function MessagingInterface() {
                   size="sm"
                   className={`font-mono text-xs ${
                     showAllMessages
-                      ? "bg-green-500 text-black"
-                      : "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                      ? "bg-primary text-black"
+                      : "border-primary/30 text-primary hover:bg-primary/10"
                   }`}
                 >
                   All Messages ({filteredMessages.length})
@@ -353,8 +388,8 @@ function MessagingInterface() {
                       size="sm"
                       className={`font-mono text-xs ${
                         isSelected
-                          ? "bg-green-500 text-black"
-                          : "border-green-500/30 text-green-400 hover:bg-green-500/10"
+                          ? "bg-primary text-black"
+                          : "border-primary/30 text-primary hover:bg-primary/10"
                       }`}
                     >
                       {contact.emoji} {contact.name} ({messageCount})
@@ -399,9 +434,9 @@ function MessagingInterface() {
         {selectedContact &&
           !showAllMessages &&
           selectedContact.name !== "Unknown" && (
-            <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+            <Card className="mb-4 sm:mb-6 bg-zinc-900 border-primary/30">
               <CardHeader className="pb-3">
-                <CardTitle className="text-green-400 font-mono text-lg flex items-center gap-2">
+                <CardTitle className="text-primary font-mono text-lg flex items-center gap-2">
                   💬 Send to {selectedContact.emoji} {selectedContact.name}
                 </CardTitle>
               </CardHeader>
@@ -414,12 +449,12 @@ function MessagingInterface() {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       disabled={loading}
-                      className="flex-1 bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500 text-sm"
+                      className="flex-1 bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500 text-sm"
                     />
                     <Button
                       type="submit"
                       disabled={loading || !message.trim()}
-                      className="bg-green-500 hover:bg-green-600 text-black font-mono font-bold px-6 sm:px-8 whitespace-nowrap"
+                      className="bg-primary hover:bg-primary text-black font-mono font-bold px-6 sm:px-8 whitespace-nowrap"
                     >
                       {loading ? "SENDING..." : "SEND"}
                     </Button>
@@ -431,9 +466,9 @@ function MessagingInterface() {
 
         {/* Quick Message for All Messages View */}
         {showAllMessages && (
-          <Card className="mb-4 sm:mb-6 bg-zinc-900 border-green-500/30">
+          <Card className="mb-4 sm:mb-6 bg-zinc-900 border-primary/30">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center text-green-400/70 text-sm">
+              <div className="text-center text-primary/70 text-sm">
                 💡 Select a contact above to send a new message
                 {isAdmin && getUnknownMessageCount() > 0 && (
                   <span className="block mt-2 text-yellow-400/70">
@@ -464,17 +499,17 @@ function MessagingInterface() {
 
         {/* Status */}
         {status && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-zinc-900 border border-green-500/30 rounded-lg text-center">
-            <span className="text-green-400 font-mono text-sm">{status}</span>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-zinc-900 border border-primary/30 rounded-lg text-center">
+            <span className="text-primary font-mono text-sm">{status}</span>
           </div>
         )}
 
         {/* Message History */}
-        <Card className="bg-zinc-900 border-green-500/30">
+        <Card className="bg-zinc-900 border-primary/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-green-400 font-mono text-lg flex items-center justify-between">
+            <CardTitle className="text-primary font-mono text-lg flex items-center justify-between">
               <span>📜 MESSAGE HISTORY</span>
-              <span className="text-xs text-green-400/60">
+              <span className="text-xs text-primary/60">
                 {filteredMessages.length} messages
               </span>
             </CardTitle>
@@ -495,7 +530,7 @@ function MessagingInterface() {
                     key={msg.id}
                     className={`p-3 sm:p-4 rounded-lg border transition-all hover:scale-[1.01] w-full ${
                       msg.direction === "outgoing"
-                        ? "bg-green-950/30 border-green-500/50"
+                        ? "bg-secondary/30 border-primary/50"
                         : msg.contact_name?.startsWith("Unknown")
                         ? "bg-yellow-950/30 border-yellow-500/50"
                         : "bg-blue-950/30 border-blue-500/50"
@@ -505,7 +540,7 @@ function MessagingInterface() {
                       <span
                         className={`text-xs font-mono font-bold ${
                           msg.direction === "outgoing"
-                            ? "text-green-400"
+                            ? "text-primary"
                             : msg.contact_name?.startsWith("Unknown")
                             ? "text-yellow-400"
                             : "text-blue-400"
@@ -522,7 +557,7 @@ function MessagingInterface() {
                           {msg.contact_name || "Unknown"}
                         </span>
                         {showAllMessages && (
-                          <span className="ml-2 text-green-400/50">
+                          <span className="ml-2 text-primary/50">
                             via{" "}
                             {msg.from_number?.includes("@") ? "EMAIL" : "SMS"}
                           </span>
@@ -542,9 +577,12 @@ function MessagingInterface() {
                         {new Date(msg.timestamp).toLocaleString()}
                       </span>
                     </div>
-                    <div className="text-green-400 font-mono text-sm break-words leading-relaxed">
-                      {msg.content}
-                    </div>
+                    <div
+                      className="text-primary font-mono text-sm break-words leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHTML(msg.content),
+                      }}
+                    />
                   </div>
                 ))
               )}
@@ -561,7 +599,7 @@ export default function MessagingPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-green-400 font-mono">Loading messaging...</div>
+          <div className="text-primary font-mono">Loading messaging...</div>
         </div>
       }
     >
