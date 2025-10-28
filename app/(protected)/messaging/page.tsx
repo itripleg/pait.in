@@ -24,34 +24,14 @@ function MessagingInterface() {
   const [showAllMessages, setShowAllMessages] = useState(true);
 
   // Sanitize HTML content to prevent XSS attacks
+  // app/messaging/page.tsx
+
+  // Sanitize HTML content to prevent XSS attacks
   const sanitizeHTML = (html: string) => {
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: [
-        "p",
-        "br",
-        "strong",
-        "b",
-        "em",
-        "i",
-        "u",
-        "a",
-        "ul",
-        "ol",
-        "li",
-        "blockquote",
-        "code",
-        "pre",
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "span",
-        "div",
-      ],
-      ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
-      ALLOW_DATA_ATTR: false,
+      // ADD more tags for email layout and content
+      ADD_TAGS: ["style"], // Add the <style> tag, (defaults are already included)
+      ALLOW_DATA_ATTR: true,
     });
   };
 

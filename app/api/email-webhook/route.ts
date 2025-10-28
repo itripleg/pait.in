@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
 
-    const from = formData.get("from") as string;
-    const to = formData.get("to") as string;
-    const subject = formData.get("subject") as string;
-    const text = formData.get("text") as string;
-    const html = formData.get("html") as string;
+    const from = (formData.get("from") as string) || "";
+    const to = (formData.get("to") as string) || "";
+    const subject = (formData.get("subject") as string) || "";
+    const text = (formData.get("text") as string) || "";
+    const html = (formData.get("html") as string) || "";
 
     console.log("📧 Email Details:", { from, to, subject });
 
@@ -31,24 +31,34 @@ export async function POST(request: NextRequest) {
 
     console.log("👤 Contact:", contactName);
 
-    // Use text content, fallback to HTML if needed
-    let emailContent = text || "";
-    if (!emailContent && html) {
-      // Basic HTML to text conversion (remove tags)
-      emailContent = html.replace(/<[^>]*>/g, "").trim();
+    // --- FIX IMPLEMENTED HERE ---
+    // Prioritize HTML content. Only fall back to (and clean) plain text.
+
+    let contentToSave: string;
+
+    if (html && html.trim().length > 0) {
+      // We found HTML, so we will use it.
+      // We will NOT run cleanEmailContent on the HTML, as regex-based
+      // cleaning is unreliable and will break the HTML structure.
+      contentToSave = html;
+      console.log("Found HTML content. Saving as HTML.");
+    } else {
+      // No HTML content, fall back to plain text.
+      // It is safe to run the cleaner on plain text.
+      console.log("No HTML content. Falling back to plain text and cleaning.");
+      contentToSave = cleanEmailContent(text);
     }
 
-    // Clean up the content (remove quoted replies)
-    const cleanContent = cleanEmailContent(emailContent);
-
-    if (!cleanContent || cleanContent.trim().length === 0) {
-      console.log("⚠️ Empty email content after cleaning");
+    // Check for empty content *after* processing
+    if (!contentToSave || contentToSave.trim().length === 0) {
+      console.log("⚠️ Empty email content after processing");
       return new NextResponse("OK", { status: 200 });
     }
+    // --- END OF FIX ---
 
     // Save to database as incoming message
     const savedMessage = await saveMessage(
-      cleanContent,
+      contentToSave, // This will now save the HTML or cleaned text
       "incoming",
       senderEmail, // from_number (email in this case)
       to, // to_number
@@ -61,7 +71,11 @@ export async function POST(request: NextRequest) {
     return new NextResponse("Email received successfully", { status: 200 });
   } catch (error) {
     console.error("❌ Email webhook error:", error);
-    return new NextResponse("Error processing email", { status: 200 });
+    // Always return 200 to SendGrid, even on errors,
+    // to prevent it from retrying a bad request.
+    return new NextResponse("Error processing email, but acknowledged", {
+      status: 200,
+    });
   }
 }
 
