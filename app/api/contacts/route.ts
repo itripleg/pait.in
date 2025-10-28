@@ -1,11 +1,9 @@
-// app/api/contacts/route.ts - Next.js 16 with async cookies() API
+// app/api/contacts/route.ts - Next.js 16 with async cookies() API and database persistence
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { approvedContacts, EnhancedContact } from "../../../lib/contacts";
+import { EnhancedContact } from "../../../lib/contacts";
 import { findUserByPassword } from "../../../lib/user-management";
-
-// In-memory storage for now - can move to Firebase later
-const dynamicContacts: EnhancedContact[] = [...approvedContacts];
+import { getContacts } from "../../../lib/db";
 
 export async function GET() {
   // Get auth token from cookie using async cookies() API
@@ -24,13 +22,23 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({
-    contacts: dynamicContacts,
-    user: {
-      name: user.name,
-      role: user.role,
-    },
-  });
+  try {
+    const contacts = await getContacts();
+
+    return NextResponse.json({
+      contacts,
+      user: {
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch contacts" },
+      { status: 500 }
+    );
+  }
 }
 
 // POST - Add new contact (admin only)
@@ -62,7 +70,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate phone numbers
-    const existingContact = dynamicContacts.find(
+    const allContacts = await getContacts();
+    const existingContact = allContacts.find(
       (c) => c.phone === newContact.phone
     );
     if (existingContact) {
@@ -80,12 +89,14 @@ export async function POST(request: NextRequest) {
       newContact.methods.push("sms");
     }
 
-    dynamicContacts.push(newContact);
+    // Save to database
+    const { saveContact } = await import("../../../lib/db");
+    const savedContact = await saveContact(newContact);
 
     return NextResponse.json({
       success: true,
       message: "Contact added successfully",
-      contact: newContact,
+      contact: savedContact,
     });
   } catch (error) {
     console.log(error);
@@ -116,11 +127,11 @@ export async function PUT(request: NextRequest) {
   try {
     const updatedContact: EnhancedContact = await request.json();
 
-    // Find and update contact
-    const contactIndex = dynamicContacts.findIndex(
-      (c) => c.id === updatedContact.id
-    );
-    if (contactIndex === -1) {
+    // Check if contact exists
+    const { getContactById, updateContact } = await import("../../../lib/db");
+    const existingContact = await getContactById(updatedContact.id);
+
+    if (!existingContact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
@@ -130,14 +141,16 @@ export async function PUT(request: NextRequest) {
       updatedContact.methods.push("email");
     }
 
-    dynamicContacts[contactIndex] = updatedContact;
+    // Update in database
+    const saved = await updateContact(updatedContact);
 
     return NextResponse.json({
       success: true,
       message: "Contact updated successfully",
-      contact: updatedContact,
+      contact: saved,
     });
   } catch (error) {
+    console.error("Error updating contact:", error);
     return NextResponse.json(
       { error: "Failed to update contact" },
       { status: 500 }
@@ -173,18 +186,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const contactIndex = dynamicContacts.findIndex((c) => c.id === contactId);
-    if (contactIndex === -1) {
+    // Check if contact exists
+    const { getContactById, deleteContact } = await import("../../../lib/db");
+    const existingContact = await getContactById(contactId);
+
+    if (!existingContact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    const deletedContact = dynamicContacts[contactIndex];
-    dynamicContacts.splice(contactIndex, 1);
+    // Delete from database
+    await deleteContact(contactId);
 
     return NextResponse.json({
       success: true,
       message: "Contact deleted successfully",
-      contact: deletedContact,
+      contact: existingContact,
     });
   } catch (error) {
     console.log(error);

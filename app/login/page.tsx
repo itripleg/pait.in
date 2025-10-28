@@ -172,7 +172,7 @@ function LoginForm() {
           <CardTitle className="text-2xl font-bold text-primary">
             🔐 PAIT LOGIN
           </CardTitle>
-          <p className="text-primary/70 text-sm mt-2">
+          <p className="text-muted-foreground text-sm mt-2">
             Personal Assistant & Information Terminal
           </p>
           {redirectParam && redirectParam !== "/" && (
@@ -191,7 +191,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
-                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
                 required
                 autoFocus
               />
@@ -212,9 +212,9 @@ function LoginForm() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-xs text-primary/50">
+          <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>🔒 Secure access required</p>
-            <p className="mt-1 text-primary/30">
+            <p className="mt-1 text-muted-foreground/70">
               Session expires after 4 hours of inactivity
             </p>
           </div>

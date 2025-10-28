@@ -51,22 +51,22 @@ function OptInForm() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg bg-zinc-900 border-green-500/30">
+      <Card className="w-full max-w-lg bg-zinc-900 border-primary/30">
         <CardHeader className="text-center">
           <div className="text-6xl mb-4">📱</div>
-          <CardTitle className="text-green-400 font-mono text-2xl">
+          <CardTitle className="text-primary font-mono text-2xl">
             SMS Messaging Consent
           </CardTitle>
-          <p className="text-green-400/70 text-sm mt-2">
+          <p className="text-muted-foreground text-sm mt-2">
             Required for PAIT messaging features
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-zinc-800/50 rounded-lg p-4 space-y-3">
-            <h3 className="text-green-400 font-mono text-sm font-bold">
+            <h3 className="text-primary font-mono text-sm font-bold">
               What you&apos;re agreeing to:
             </h3>
-            <div className="text-xs text-green-400/80 space-y-2">
+            <div className="text-xs text-muted-foreground space-y-2">
               <p>✓ Receive SMS messages through PAIT messaging system</p>
               <p>✓ Messages sent only to your approved family contacts</p>
               <p>✓ All communications are family-safe and monitored</p>
@@ -79,7 +79,7 @@ function OptInForm() {
             <Button
               onClick={handleOptIn}
               disabled={isLoading}
-              className="w-full bg-green-500 hover:bg-green-600 text-black font-mono font-bold py-3"
+              className="w-full bg-primary hover:bg-primary/90 text-black font-mono font-bold py-3"
             >
               {isLoading ? "Processing..." : "I Agree to SMS Messaging"}
             </Button>
@@ -93,8 +93,8 @@ function OptInForm() {
             </Button>
           </div>
 
-          <div className="text-center pt-4 border-t border-green-500/20">
-            <p className="text-xs text-green-400/40">
+          <div className="text-center pt-4 border-t border-primary/20">
+            <p className="text-xs text-muted-foreground/70">
               This consent is stored securely and required for family messaging
               safety.
             </p>
@@ -110,7 +110,7 @@ export default function OptInPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-green-400 font-mono">Loading opt-in...</div>
+          <div className="text-primary font-mono">Loading opt-in...</div>
         </div>
       }
     >

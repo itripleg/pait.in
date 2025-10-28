@@ -55,16 +55,43 @@ export const approvedContacts: EnhancedContact[] = [
   },
 ];
 
-export function getContactByPhone(phone: string): EnhancedContact | undefined {
-  return approvedContacts.find((contact) => contact.phone === phone);
+// These functions now fetch from database, but keep fallback to hardcoded contacts
+export async function getContactByPhone(phone: string): Promise<EnhancedContact | undefined> {
+  try {
+    const { getContacts } = await import("./db");
+    const contacts = await getContacts();
+    return contacts.find((contact) => contact.phone === phone);
+  } catch (error) {
+    console.error("Error fetching contact by phone:", error);
+    // Fallback to hardcoded contacts
+    return approvedContacts.find((contact) => contact.phone === phone);
+  }
 }
 
-export function getContactByEmail(email: string): EnhancedContact | undefined {
-  return approvedContacts.find((contact) => contact.email === email);
+export async function getContactByEmail(email: string): Promise<EnhancedContact | undefined> {
+  try {
+    const { getContacts } = await import("./db");
+    const contacts = await getContacts();
+    return contacts.find((contact) => contact.email === email);
+  } catch (error) {
+    console.error("Error fetching contact by email:", error);
+    // Fallback to hardcoded contacts
+    return approvedContacts.find((contact) => contact.email === email);
+  }
 }
 
-export function getContactByName(name: string): EnhancedContact | undefined {
-  return approvedContacts.find(
-    (contact) => contact.name.toLowerCase() === name.toLowerCase()
-  );
+export async function getContactByName(name: string): Promise<EnhancedContact | undefined> {
+  try {
+    const { getContacts } = await import("./db");
+    const contacts = await getContacts();
+    return contacts.find(
+      (contact) => contact.name.toLowerCase() === name.toLowerCase()
+    );
+  } catch (error) {
+    console.error("Error fetching contact by name:", error);
+    // Fallback to hardcoded contacts
+    return approvedContacts.find(
+      (contact) => contact.name.toLowerCase() === name.toLowerCase()
+    );
+  }
 }

@@ -38,10 +38,10 @@ export default function AdminPage() {
           router.push("/");
         }
       } else {
-        router.push("/login");
+        router.push("/login?redirect=/admin");
       }
     } catch (error) {
-      router.push("/login");
+      router.push("/login?redirect=/admin");
     }
   };
 
@@ -125,17 +125,20 @@ export default function AdminPage() {
       "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/");
+    // Clear splash flag so user sees splash on next visit
+    sessionStorage.removeItem("splash_shown");
+    // Force full page reload to clear all React state
+    window.location.href = "/";
   };
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono p-4">
+    <div className="min-h-screen bg-black text-primary font-mono p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-green-500/30">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-primary/30">
           <div>
             <h1 className="text-2xl font-bold">⚙️ ADMIN DASHBOARD</h1>
-            <p className="text-green-400/70 text-sm">
+            <p className="text-primary/70 text-sm">
               Contact Management & System Administration
             </p>
           </div>
@@ -143,14 +146,14 @@ export default function AdminPage() {
             <Button
               onClick={() => router.push("/messaging")}
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs"
             >
               💬 MESSAGES
             </Button>
             <Button
               onClick={() => router.push("/")}
               variant="outline"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs"
+              className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs"
             >
               🏠 HOME
             </Button>
@@ -166,15 +169,15 @@ export default function AdminPage() {
 
         {/* Status */}
         {status && (
-          <div className="mb-6 p-3 bg-zinc-900 border border-green-500/30 rounded-lg text-center">
-            <span className="text-green-400 font-mono text-sm">{status}</span>
+          <div className="mb-6 p-3 bg-zinc-900 border border-primary/30 rounded-lg text-center">
+            <span className="text-muted-foreground font-mono text-sm">{status}</span>
           </div>
         )}
 
         {/* Add New Contact */}
-        <Card className="mb-6 bg-zinc-900 border-green-500/30">
+        <Card className="mb-6 bg-zinc-900 border-primary/30">
           <CardHeader>
-            <CardTitle className="text-green-400 font-mono">
+            <CardTitle className="text-primary font-mono">
               ➕ Add New Contact
             </CardTitle>
           </CardHeader>
@@ -186,7 +189,7 @@ export default function AdminPage() {
                 onChange={(e) =>
                   setNewContact({ ...newContact, name: e.target.value })
                 }
-                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
               />
               <Input
                 placeholder="Phone (+1234567890)"
@@ -194,7 +197,7 @@ export default function AdminPage() {
                 onChange={(e) =>
                   setNewContact({ ...newContact, phone: e.target.value })
                 }
-                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
               />
               <Input
                 placeholder="Email (optional)"
@@ -202,7 +205,7 @@ export default function AdminPage() {
                 onChange={(e) =>
                   setNewContact({ ...newContact, email: e.target.value })
                 }
-                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
               />
               <Input
                 placeholder="Emoji"
@@ -210,12 +213,12 @@ export default function AdminPage() {
                 onChange={(e) =>
                   setNewContact({ ...newContact, emoji: e.target.value })
                 }
-                className="bg-zinc-800 border-zinc-700 text-green-400 font-mono placeholder:text-zinc-500"
+                className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
               />
               <Button
                 onClick={addContact}
                 disabled={loading}
-                className="bg-green-500 hover:bg-green-600 text-black font-mono font-bold"
+                className="bg-primary hover:bg-primary/90 text-black font-mono font-bold"
               >
                 {loading ? "ADDING..." : "ADD"}
               </Button>
@@ -224,9 +227,9 @@ export default function AdminPage() {
         </Card>
 
         {/* Contacts List */}
-        <Card className="bg-zinc-900 border-green-500/30">
+        <Card className="bg-zinc-900 border-primary/30">
           <CardHeader>
-            <CardTitle className="text-green-400 font-mono">
+            <CardTitle className="text-primary font-mono">
               👥 Manage Contacts
             </CardTitle>
           </CardHeader>
@@ -235,7 +238,7 @@ export default function AdminPage() {
               {contacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-green-500/50 transition-colors"
+                  className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-primary/50 transition-colors"
                 >
                   {editingContact?.id === contact.id ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
@@ -247,7 +250,7 @@ export default function AdminPage() {
                             name: e.target.value,
                           })
                         }
-                        className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                        className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                       />
                       <Input
                         value={editingContact.phone}
@@ -257,7 +260,7 @@ export default function AdminPage() {
                             phone: e.target.value,
                           })
                         }
-                        className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                        className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                       />
                       <Input
                         value={editingContact.email || ""}
@@ -267,7 +270,7 @@ export default function AdminPage() {
                             email: e.target.value,
                           })
                         }
-                        className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                        className="bg-zinc-700 border-zinc-600 text-primary font-mono placeholder:text-muted-foreground"
                         placeholder="Email (optional)"
                       />
                       <Input
@@ -278,13 +281,13 @@ export default function AdminPage() {
                             emoji: e.target.value,
                           })
                         }
-                        className="bg-zinc-700 border-zinc-600 text-green-400 font-mono"
+                        className="bg-zinc-700 border-zinc-600 text-primary font-mono"
                       />
                       <div className="flex gap-2">
                         <Button
                           onClick={() => saveContact(editingContact)}
                           size="sm"
-                          className="bg-green-500 hover:bg-green-600 text-black font-mono"
+                          className="bg-primary hover:bg-primary/90 text-black font-mono"
                         >
                           SAVE
                         </Button>
@@ -303,14 +306,14 @@ export default function AdminPage() {
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{contact.emoji}</span>
                         <div>
-                          <div className="font-bold text-green-400">
+                          <div className="font-bold text-primary">
                             {contact.name}
                           </div>
-                          <div className="text-sm text-green-400/70">
+                          <div className="text-sm text-muted-foreground">
                             {contact.phone}
                           </div>
                           {contact.email && (
-                            <div className="text-sm text-blue-400/70">
+                            <div className="text-sm text-muted-foreground/70">
                               {contact.email}
                             </div>
                           )}
@@ -324,7 +327,7 @@ export default function AdminPage() {
                               variant="outline"
                               className={`text-xs font-mono ${
                                 method === "sms"
-                                  ? "border-green-500/50 text-green-400"
+                                  ? "border-primary/50 text-primary"
                                   : "border-blue-500/50 text-blue-400"
                               }`}
                             >
@@ -336,7 +339,7 @@ export default function AdminPage() {
                           onClick={() => setEditingContact(contact)}
                           size="sm"
                           variant="outline"
-                          className="border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono text-xs"
+                          className="border-primary/50 text-primary hover:bg-primary/10 font-mono text-xs"
                         >
                           EDIT
                         </Button>

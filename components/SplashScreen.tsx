@@ -76,7 +76,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-3 h-3 bg-green-400 rounded-full"
+                className="w-3 h-3 bg-primary rounded-full"
                 animate={{
                   scale: [1, 1.5, 1],
                   opacity: [0.5, 1, 0.5],

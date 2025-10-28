@@ -181,12 +181,10 @@ export const ColorThemeProvider: React.FC<ColorThemeProviderProps> = ({
           const data = await response.json();
 
           if (data.customTheme && data.customTheme.colors) {
-            console.log("🎨 Loading saved custom theme colors");
             const savedColors = data.customTheme.colors;
 
             // Handle migration from 3 colors to 4 colors
             if (savedColors.length === 3) {
-              console.log("🎨 Migrating from 3 colors to 4 colors");
               const migratedColors = [
                 ...savedColors,
                 defaultColors[3] // Add default text color
@@ -198,11 +196,9 @@ export const ColorThemeProvider: React.FC<ColorThemeProviderProps> = ({
               applyColorsToCSS(savedColors, true); // Animate user colors
             }
           } else {
-            console.log("🎨 No saved colors found, using defaults");
             applyColorsToCSS(colors, false);
           }
         } else {
-          console.log("🎨 User not authenticated or no preferences, using defaults");
           applyColorsToCSS(colors, false);
         }
       } catch (error) {
@@ -219,7 +215,6 @@ export const ColorThemeProvider: React.FC<ColorThemeProviderProps> = ({
   // Apply default colors on mount if no user is authenticated
   useEffect(() => {
     if (mounted && !isAuthenticated) {
-      console.log("🎨 No user authenticated, applying default colors");
       applyColorsToCSS(colors, false); // No animation for initial load
     }
   }, [mounted, isAuthenticated, colors]);

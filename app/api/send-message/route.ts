@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Find the contact
-  const contact = getContactByName(contactName);
+  const contact = await getContactByName(contactName);
   if (!contact) {
     return NextResponse.json({ error: "Contact not found" }, { status: 400 });
   }

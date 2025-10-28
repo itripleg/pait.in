@@ -161,7 +161,7 @@ async function handleSMSWebhook(request: NextRequest) {
   }
 
   // Find contact
-  const contact = getContactByPhone(From);
+  const contact = await getContactByPhone(From);
   const contactName = contact ? contact.name : "Unknown";
   console.log("👤 Contact:", contactName);
 
@@ -208,7 +208,7 @@ async function handleEmailWebhook(request: NextRequest) {
   console.log("👤 Sender email extracted:", senderEmail);
 
   // Find contact by email
-  const contact = getContactByEmail(senderEmail);
+  const contact = await getContactByEmail(senderEmail);
   const contactName = contact ? contact.name : extractNameFromEmail(from);
 
   console.log("👤 Contact:", contactName);

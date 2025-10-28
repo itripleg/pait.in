@@ -18,7 +18,10 @@ export default function SettingsPage() {
       "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/");
+    // Clear splash flag so user sees splash on next visit
+    sessionStorage.removeItem("splash_shown");
+    // Force full page reload to clear all React state
+    window.location.href = "/";
   };
 
   if (isLoading) {

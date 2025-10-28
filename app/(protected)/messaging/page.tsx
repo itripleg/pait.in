@@ -59,7 +59,7 @@ function MessagingInterface() {
         const data = await response.json();
         setMessages(data.messages);
       } else if (response.status === 401) {
-        router.push("/login");
+        router.push("/login?redirect=/messaging");
       }
     } catch (error) {
       console.error("Failed to fetch messages:", error);
@@ -84,7 +84,7 @@ function MessagingInterface() {
           }
         }
       } else if (response.status === 401) {
-        router.push("/login");
+        router.push("/login?redirect=/messaging");
       }
     } catch (error) {
       console.error("Failed to fetch contacts:", error);
@@ -113,7 +113,7 @@ function MessagingInterface() {
         fetchMessages();
         setTimeout(() => setStatus(""), 3000);
       } else if (response.status === 401) {
-        router.push("/login");
+        router.push("/login?redirect=/messaging");
       } else {
         const error = await response.json();
         setStatus(`Error: ${error.error}`);
@@ -130,7 +130,10 @@ function MessagingInterface() {
       "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/");
+    // Clear splash flag so user sees splash on next visit
+    sessionStorage.removeItem("splash_shown");
+    // Force full page reload to clear all React state
+    window.location.href = "/";
   };
 
   // Filter messages based on selection and user role
@@ -429,7 +432,7 @@ function MessagingInterface() {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       disabled={loading}
-                      className="flex-1 bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500 text-sm"
+                      className="flex-1 bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground text-sm"
                     />
                     <Button
                       type="submit"
@@ -448,7 +451,7 @@ function MessagingInterface() {
         {showAllMessages && (
           <Card className="mb-4 sm:mb-6 bg-zinc-900 border-primary/30">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="text-center text-primary/70 text-sm">
+              <div className="text-center text-muted-foreground text-sm">
                 💡 Select a contact above to send a new message
                 {isAdmin && getUnknownMessageCount() > 0 && (
                   <span className="block mt-2 text-yellow-400/70">
@@ -480,7 +483,7 @@ function MessagingInterface() {
         {/* Status */}
         {status && (
           <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-zinc-900 border border-primary/30 rounded-lg text-center">
-            <span className="text-primary font-mono text-sm">{status}</span>
+            <span className="text-muted-foreground font-mono text-sm">{status}</span>
           </div>
         )}
 
@@ -495,9 +498,9 @@ function MessagingInterface() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto scrollbar-thin scrollbar-track-zinc-800 scrollbar-thumb-green-500/50 hover:scrollbar-thumb-green-500/70 px-2">
+            <div className="space-y-3 max-h-[60vh] sm:max-h-96 overflow-y-auto scrollbar-thin scrollbar-track-zinc-800 scrollbar-thumb-primary/50 hover:scrollbar-thumb-primary/70 px-2">
               {filteredMessages.length === 0 ? (
-                <p className="text-zinc-500 text-center font-mono text-sm py-8">
+                <p className="text-muted-foreground text-center font-mono text-sm py-8">
                   {showAllMessages
                     ? "No messages yet..."
                     : `No messages with ${
@@ -553,7 +556,7 @@ function MessagingInterface() {
                           </span>
                         )}
                       </span>
-                      <span className="text-xs text-zinc-500 font-mono whitespace-nowrap">
+                      <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">
                         {new Date(msg.timestamp).toLocaleString()}
                       </span>
                     </div>

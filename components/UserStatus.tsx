@@ -1,7 +1,7 @@
 // components/UserStatus.tsx - Fixed hydration with proper SSR handling
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface UserProfile {
   id: string;
@@ -14,17 +14,28 @@ export function UserStatus() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const lastRefreshRef = useRef<number>(0);
 
   // Update cookie expiration on user activity (via API call to server)
+  // Throttled to max once every 5 minutes to prevent server flooding
   const updateCookieExpiration = async () => {
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    // Only refresh if it's been at least 5 minutes since last refresh
+    if (now - lastRefreshRef.current < fiveMinutes) {
+      return;
+    }
+
     try {
+      lastRefreshRef.current = now;
       // Let server handle cookie updates
       await fetch("/api/auth/refresh", {
         method: "POST",
         credentials: "include",
       });
     } catch (error) {
-      console.error("Failed to refresh session:", error);
+      // Silently fail - not critical for user experience
     }
   };
 
@@ -57,7 +68,7 @@ export function UserStatus() {
           setUser(userInfo);
           setAuthenticated(true);
         } catch (error) {
-          console.error("Error parsing user cookie:", error);
+          // Cookie parsing failed, fallback to API check
           checkUserViaAPI();
         }
       } else {

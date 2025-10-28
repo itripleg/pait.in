@@ -52,3 +52,24 @@ export async function getMessages() {
 export async function getMessagesByContact(contactPhone: string) {
   return dbAdapter.getMessagesByContact(contactPhone);
 }
+
+// Contact management functions
+export async function getContacts() {
+  return dbAdapter.getContacts();
+}
+
+export async function getContactById(id: string) {
+  return dbAdapter.getContactById(id);
+}
+
+export async function saveContact(contact: any) {
+  return dbAdapter.saveContact(contact);
+}
+
+export async function updateContact(contact: any) {
+  return dbAdapter.updateContact(contact);
+}
+
+export async function deleteContact(id: string) {
+  return dbAdapter.deleteContact(id);
+}

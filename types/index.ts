@@ -34,4 +34,11 @@ export interface DatabaseAdapter {
   ): Promise<Message>;
   getMessages(): Promise<Message[]>;
   getMessagesByContact(contactPhone: string): Promise<Message[]>;
+
+  // Contact management methods
+  getContacts(): Promise<EnhancedContact[]>;
+  getContactById(id: string): Promise<EnhancedContact | null>;
+  saveContact(contact: EnhancedContact): Promise<EnhancedContact>;
+  updateContact(contact: EnhancedContact): Promise<EnhancedContact>;
+  deleteContact(id: string): Promise<void>;
 }

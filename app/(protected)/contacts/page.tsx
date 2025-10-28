@@ -44,7 +44,7 @@ export default function ContactsPage() {
         const data = await response.json();
         setContacts(data.contacts);
       } else if (response.status === 401) {
-        router.push("/login");
+        router.push("/login?redirect=/contacts");
       } else {
         console.error("Failed to fetch contacts:", response.status);
       }
@@ -127,7 +127,10 @@ export default function ContactsPage() {
       "pait_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "pait_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/");
+    // Clear splash flag so user sees splash on next visit
+    sessionStorage.removeItem("splash_shown");
+    // Force full page reload to clear all React state
+    window.location.href = "/";
   };
 
   // Show loading while determining user role
@@ -195,7 +198,7 @@ export default function ContactsPage() {
         {/* Status */}
         {status && (
           <div className="mb-6 p-3 bg-zinc-900 border border-primary/30 rounded-lg text-center">
-            <span className="text-primary font-mono text-sm">{status}</span>
+            <span className="text-muted-foreground font-mono text-sm">{status}</span>
           </div>
         )}
 
@@ -215,7 +218,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, name: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
                 />
                 <Input
                   placeholder="Phone (+1234567890)"
@@ -223,7 +226,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, phone: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
                 />
                 <Input
                   placeholder="Email (optional)"
@@ -231,7 +234,7 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, email: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
                 />
                 <Input
                   placeholder="Emoji"
@@ -239,12 +242,12 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setNewContact({ ...newContact, emoji: e.target.value })
                   }
-                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-zinc-500"
+                  className="bg-zinc-800 border-zinc-700 text-primary font-mono placeholder:text-muted-foreground"
                 />
                 <Button
                   onClick={addContact}
                   disabled={actionLoading}
-                  className="bg-primary hover:bg-green-600 text-black font-mono font-bold"
+                  className="bg-primary hover:bg-primary/90 text-black font-mono font-bold"
                 >
                   {actionLoading ? "ADDING..." : "ADD"}
                 </Button>
@@ -299,7 +302,7 @@ export default function ContactsPage() {
                               email: e.target.value,
                             })
                           }
-                          className="bg-zinc-700 border-zinc-600 text-primary font-mono"
+                          className="bg-zinc-700 border-zinc-600 text-primary font-mono placeholder:text-muted-foreground"
                           placeholder="Email (optional)"
                         />
                         <Input
@@ -317,7 +320,7 @@ export default function ContactsPage() {
                             onClick={() => saveContact(editingContact)}
                             size="sm"
                             disabled={actionLoading}
-                            className="bg-primary hover:bg-green-600 text-black font-mono"
+                            className="bg-primary hover:bg-primary/90 text-black font-mono"
                           >
                             {actionLoading ? "SAVING..." : "SAVE"}
                           </Button>
@@ -339,11 +342,11 @@ export default function ContactsPage() {
                             <div className="font-bold text-primary">
                               {contact.name}
                             </div>
-                            <div className="text-sm text-primary/70">
+                            <div className="text-sm text-muted-foreground">
                               {contact.phone}
                             </div>
                             {contact.email && (
-                              <div className="text-sm text-blue-400/70">
+                              <div className="text-sm text-muted-foreground/70">
                                 {contact.email}
                               </div>
                             )}
@@ -368,7 +371,7 @@ export default function ContactsPage() {
                           <Button
                             onClick={() => handleMessageContact(contact)}
                             size="sm"
-                            className="bg-primary hover:bg-green-600 text-black font-mono text-xs"
+                            className="bg-primary hover:bg-primary/90 text-black font-mono text-xs"
                           >
                             MESSAGE
                           </Button>
@@ -404,14 +407,14 @@ export default function ContactsPage() {
                     <h3 className="text-lg sm:text-xl font-bold text-primary mb-2">
                       {contact.name}
                     </h3>
-                    <p className="text-primary/70 text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
                       {contact.phone
                         .replace("+1", "")
                         .replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3")}
                     </p>
                     <Button
                       onClick={() => handleMessageContact(contact)}
-                      className="w-full bg-primary hover:bg-green-600 text-black font-mono font-bold text-sm py-2"
+                      className="w-full bg-primary hover:bg-primary/90 text-black font-mono font-bold text-sm py-2"
                     >
                       💬 MESSAGE
                     </Button>

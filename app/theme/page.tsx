@@ -351,7 +351,7 @@ const ThemeCustomizer = () => {
             {isAuthenticated ? (
               <Badge
                 variant="outline"
-                className="text-green-400 border-green-400/30 bg-green-950/30"
+                className="text-primary border-primary/30 bg-secondary"
               >
                 <Cloud className="h-3 w-3 mr-1" />
                 Authenticated
@@ -370,7 +370,7 @@ const ThemeCustomizer = () => {
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {lastSaved && (
-              <span className="text-xs text-green-400/60 font-mono">
+              <span className="text-xs text-primary/60 font-mono">
                 Saved {lastSaved.toLocaleTimeString()}
               </span>
             )}
@@ -380,7 +380,7 @@ const ThemeCustomizer = () => {
               disabled={!isAuthenticated || isSaving}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2 transition-all duration-300 border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono"
+              className="flex items-center gap-2 transition-all duration-300 border-primary/50 text-primary hover:bg-primary/10 font-mono"
             >
               <motion.div
                 animate={isSaving ? { rotate: 360 } : {}}

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     console.log("👤 Sender email extracted:", senderEmail);
 
     // Find contact by email
-    const contact = getContactByEmail(senderEmail);
+    const contact = await getContactByEmail(senderEmail);
     const contactName = contact ? contact.name : extractNameFromEmail(from);
 
     console.log("👤 Contact:", contactName);
