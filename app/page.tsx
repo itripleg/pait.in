@@ -2,25 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
+import MiniPet from "@/components/MiniPet";
+import DailyQuote from "@/components/DailyQuote";
 
 // Icons as simple SVG components for a clean look
 const MailIcon = () => (
   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-  </svg>
-);
-
-const SparklesIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-  </svg>
-);
-
-const HeartIcon = () => (
-  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
   </svg>
 );
 
@@ -94,17 +84,6 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="text-center mb-12"
           >
-            {/* Decorative element */}
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-purple-200/50 text-purple-600 text-sm mb-8"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <SparklesIcon />
-              <span>Welcome to your space</span>
-            </motion.div>
-
             {/* Main heading */}
             <motion.h1
               className="text-5xl sm:text-7xl md:text-8xl font-bold mb-6"
@@ -175,56 +154,11 @@ export default function LandingPage() {
               </motion.div>
             </Link>
 
-            {/* Quote Card */}
-            <motion.div
-              className="glass-card rounded-3xl p-8 relative overflow-hidden"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <div className="absolute top-4 right-4 text-6xl text-purple-200/50 leading-none">
-                "
-              </div>
-              <div className="relative z-10">
-                <p className="text-lg text-foreground/90 italic leading-relaxed mb-4">
-                  Dream big, work hard, stay focused.
-                </p>
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <HeartIcon />
-                  <span>Daily reminder</span>
-                </div>
-              </div>
-            </motion.div>
+            {/* Daily Quote Card */}
+            <DailyQuote />
 
-            {/* Activity Card */}
-            <motion.div
-              className="glass-card rounded-3xl p-8 relative overflow-hidden"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white text-lg shadow-lg shadow-blue-300/30">
-                  ⚽
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Stay Active</h3>
-                  <p className="text-sm text-muted-foreground">Keep moving!</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">This week</span>
-                  <span className="text-foreground font-medium">Great job!</span>
-                </div>
-                <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: "85%" }}
-                    transition={{ duration: 1, delay: 1, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-            </motion.div>
+            {/* Mini Pet Card */}
+            <MiniPet />
           </motion.div>
 
           {/* Bottom decoration */}

@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { Quicksand, Satisfy } from "next/font/google";
 import "./globals.css";
+import HolidayBackground from "@/components/HolidayBackground";
+import BuddyPeek from "@/components/BuddyPeek";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -17,15 +19,34 @@ const satisfy = Satisfy({
 
 export const metadata: Metadata = {
   title: "Paitin",
-  description: "Your personal space",
+  description: "Your personal space - a safe place to connect with family and friends",
+  manifest: "/manifest.json",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>",
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Paitin",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Paitin",
+    title: "Paitin",
+    description: "Your personal space - a safe place to connect with family and friends",
   },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#a855f7",
 };
 
 export default function RootLayout({
@@ -41,6 +62,12 @@ export default function RootLayout({
       >
         {/* Dreamy animated background */}
         <div className="fixed inset-0 dreamy-gradient -z-10" />
+
+        {/* Holiday-themed animated background (auto-detects holidays) */}
+        <HolidayBackground />
+
+        {/* Buddy peek microinteraction (appears when pet is happy) */}
+        <BuddyPeek />
 
         {/* Floating decorative elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-5">

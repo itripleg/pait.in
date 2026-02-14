@@ -138,8 +138,14 @@
   border: 1px solid hsl(280 25% 88% / 0.5);
 }
 
-/* Shimmer effect */
+/* Shimmer effect - translate based for overlays */
 @keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Shimmer effect - background position based for gradients */
+@keyframes shimmer-bg {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
@@ -152,7 +158,7 @@
     transparent 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 3s infinite;
+  animation: shimmer-bg 3s infinite;
 }
 
 /* Sparkle dots */
@@ -192,9 +198,9 @@
   background-clip: text;
 }
 
-/* Smooth transitions */
+/* Smooth transitions - excluding opacity/transform which Framer Motion handles */
 * {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
