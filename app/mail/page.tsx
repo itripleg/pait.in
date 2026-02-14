@@ -89,6 +89,7 @@ type Tab = "inbox" | "compose";
 function cleanEmailContent(content: string): string {
   if (!content) return "";
 
+  // First pass: remove obvious CSS/HTML patterns
   let cleaned = content
     // Remove CSS blocks (anything between { and })
     .replace(/\{[^}]*\}/g, " ")
@@ -100,7 +101,7 @@ function cleanEmailContent(content: string): string {
     // Remove CSS property patterns (word-word: or word:)
     .replace(/[\w-]+\s*:\s*[^;}\n]+[;]?/g, " ")
     // Remove common CSS/HTML keywords
-    .replace(/\b(display|font-size|line-height|margin|padding|width|height|color|background|border|none|important|block|inline|hidden|visible|auto|px|em|rem|vh|vw)\b[:\s]*/gi, " ")
+    .replace(/\b(display|font-size|line-height|margin|padding|width|height|color|background|border|none|important|block|inline|hidden|visible|auto|px|em|rem|vh|vw|screen|only|and|max-width|min-width|font-family|font-weight|text-decoration|text-align|vertical-align|overflow|float|clear|position|top|left|right|bottom|z-index|opacity|transform|transition|animation|cursor|outline|box-shadow|border-radius|content|src|format|mso-|webkit-)\b[:\s]*/gi, " ")
     // Remove URLs (including font URLs, tracking URLs, etc.)
     .replace(/https?:\/\/[^\s)'"]+/gi, "")
     .replace(/url\([^)]*\)/gi, "")
@@ -115,31 +116,43 @@ function cleanEmailContent(content: string): string {
     // Replace other common problematic Unicode chars
     .replace(/[\u2028\u2029]/g, "\n")
     .replace(/[\u0080-\u009F]/g, "")
-    // Remove CSS class names and selectors
+    // Remove CSS class/id selectors (including standalone ones)
+    .replace(/^\.[\w-]+$/gm, "")
+    .replace(/^\#[\w-]+$/gm, "")
     .replace(/\.[a-zA-Z][\w-]*\s*[,{]/g, " ")
     .replace(/\#[a-zA-Z][\w-]*/g, " ")
     // Remove template variables like @productName, @productLink
     .replace(/@\w+/g, "")
     // Remove repeated punctuation and symbols
-    .replace(/[{}();,]+/g, " ")
-    // Remove lines that are mostly non-letter characters
+    .replace(/[{}();,]+/g, " ");
+
+  // Second pass: filter lines
+  cleaned = cleaned
     .split("\n")
+    .map(line => line.trim())
     .filter(line => {
+      if (line.length === 0) return false;
+      // Skip lines that are just single words that look like CSS
+      if (/^[a-z][a-z0-9]*$/i.test(line) && line.length < 15) {
+        // Common CSS element selectors or junk words
+        const cssJunk = ['p', 'a', 'div', 'span', 'td', 'tr', 'th', 'table', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'html', 'img', 'br', 'hr', 'input', 'button', 'form', 'label', 'select', 'option', 'textarea', 'nav', 'header', 'footer', 'section', 'article', 'aside', 'main', 'figure', 'figcaption', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'code', 'pre', 'blockquote', 'iframe', 'embed', 'object', 'video', 'audio', 'canvas', 'svg', 'path', 'style', 'script', 'link', 'meta', 'title', 'head', 'woff', 'ttf', 'eot', 'otf', 'format', 'serif', 'sans', 'arial', 'helvetica', 'verdana', 'georgia', 'times', 'courier'];
+        if (cssJunk.includes(line.toLowerCase())) return false;
+      }
+      // Skip lines starting with . (CSS class)
+      if (/^\.[\w-]+$/.test(line)) return false;
+      // Skip lines that are mostly non-letter characters
       const letters = (line.match(/[a-zA-Z]/g) || []).length;
-      const total = line.trim().length;
-      return total === 0 || letters / total > 0.3;
+      const total = line.length;
+      if (letters / total < 0.4) return false;
+      // Skip very short lines (likely junk)
+      if (line.length < 3) return false;
+      return true;
     })
     .join("\n")
     // Remove repeated whitespace
     .replace(/[ \t]{2,}/g, " ")
     // Clean up multiple newlines
     .replace(/\n{3,}/g, "\n\n")
-    // Remove lines that are just whitespace
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .join("\n")
-    // Trim
     .trim();
 
   return cleaned;
