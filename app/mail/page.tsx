@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
 
 // Types
 interface Message {
@@ -84,6 +85,33 @@ const LogoutIcon = () => (
 
 type Tab = "inbox" | "compose";
 
+// Clean up email content for display - remove tracking URLs, hidden characters, etc.
+function cleanEmailContent(content: string): string {
+  if (!content) return "";
+
+  let cleaned = content
+    // Remove soft hyphens and zero-width characters
+    .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, "")
+    // Remove sequences of whitespace characters used as spacers
+    .replace(/[\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F]+/g, " ")
+    // Remove tracking URLs (long base64-encoded URLs)
+    .replace(/https?:\/\/[^\s]*(?:qs=|click\.)[^\s]*/gi, "[link]")
+    // Remove URLs longer than 100 characters (likely tracking)
+    .replace(/https?:\/\/[^\s]{100,}/gi, "[link]")
+    // Remove repeated whitespace
+    .replace(/[ ]{3,}/g, " ")
+    // Remove template variables like @productName, @productLink
+    .replace(/@\w+/g, "")
+    // Clean up multiple newlines
+    .replace(/\n{3,}/g, "\n\n")
+    // Remove lines that are just "[link]" repeated
+    .replace(/(\[link\]\s*){2,}/g, "[link] ")
+    // Trim
+    .trim();
+
+  return cleaned;
+}
+
 export default function MailPage() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,9 +136,21 @@ export default function MailPage() {
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState<string | null>(null);
 
+  // Read/unread tracking (stored in localStorage)
+  const [readMessages, setReadMessages] = useState<Set<string | number>>(new Set());
+
   useEffect(() => {
     setMounted(true);
     checkAuth();
+    // Load read messages from localStorage
+    try {
+      const stored = localStorage.getItem("pait_read_messages");
+      if (stored) {
+        setReadMessages(new Set(JSON.parse(stored)));
+      }
+    } catch (e) {
+      console.error("Failed to load read messages:", e);
+    }
   }, []);
 
   // Auto-refresh messages every 10 seconds when authenticated
@@ -241,6 +281,18 @@ export default function MailPage() {
 
   const handleSelectMessage = (message: Message) => {
     setSelectedMessage(message);
+    // Mark as read
+    if (!readMessages.has(message.id)) {
+      const newReadMessages = new Set(readMessages);
+      newReadMessages.add(message.id);
+      setReadMessages(newReadMessages);
+      // Persist to localStorage
+      try {
+        localStorage.setItem("pait_read_messages", JSON.stringify([...newReadMessages]));
+      } catch (e) {
+        console.error("Failed to save read messages:", e);
+      }
+    }
   };
 
   // Handle contact selection - auto-fill email
@@ -417,34 +469,22 @@ export default function MailPage() {
   // Main mail interface
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 right-0 z-50"
-      >
-        <div className="mx-4 mt-4">
-          <div className="glass-card rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="p-2 -ml-2 rounded-xl hover:bg-purple-100/50 transition-colors text-purple-600"
-              >
-                <BackIcon />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  My Mail
-                  {user.emoji && <span>{user.emoji}</span>}
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  {emailMessages.length > 0
-                    ? `${emailMessages.length} emails`
-                    : "No emails yet"}
-                </p>
-              </div>
-            </div>
+      {/* Main Content */}
+      <main className="pt-8 pb-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Navigation Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between mb-6"
+          >
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors"
+            >
+              <BackIcon />
+              <span className="text-sm font-medium">Back</span>
+            </Link>
 
             <div className="flex items-center gap-2">
               <motion.button
@@ -453,6 +493,7 @@ export default function MailPage() {
                 className="p-2 rounded-xl hover:bg-purple-100/50 transition-colors text-purple-500 disabled:opacity-50"
                 animate={isRefreshing ? { rotate: 360 } : {}}
                 transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
+                title="Refresh"
               >
                 <RefreshIcon />
               </motion.button>
@@ -464,13 +505,7 @@ export default function MailPage() {
                 <LogoutIcon />
               </button>
             </div>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* Main Content */}
-      <main className="pt-24 pb-24 px-4">
-        <div className="max-w-4xl mx-auto">
+          </motion.div>
           {/* Error display */}
           {error && (
             <motion.div
@@ -501,7 +536,7 @@ export default function MailPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex gap-2 mb-6"
+            className="flex justify-center gap-2 mb-6"
           >
             <button
               onClick={() => setActiveTab("inbox")}
@@ -513,11 +548,16 @@ export default function MailPage() {
             >
               <InboxIcon />
               Inbox
-              {emailMessages.length > 0 && (
-                <span className="px-2 py-0.5 text-xs rounded-full bg-white/20">
-                  {emailMessages.length}
-                </span>
-              )}
+              {(() => {
+                const unreadCount = emailMessages.filter(
+                  (m) => m.direction === "incoming" && !readMessages.has(m.id)
+                ).length;
+                return unreadCount > 0 ? (
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-white/20">
+                    {unreadCount}
+                  </span>
+                ) : null;
+              })()}
             </button>
             <button
               onClick={() => setActiveTab("compose")}
@@ -544,7 +584,7 @@ export default function MailPage() {
                 {/* Message List */}
                 <div className={`w-full ${selectedMessage ? "hidden lg:block lg:w-2/5" : ""}`}>
                   <div className="glass-card rounded-2xl overflow-hidden">
-                    <div className="divide-y divide-purple-100/50">
+                    <div className="divide-y divide-purple-100/50 max-h-[70vh] overflow-y-auto">
                       {emailMessages.length === 0 ? (
                         <div className="p-12 text-center">
                           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-400">
@@ -559,40 +599,47 @@ export default function MailPage() {
                         emailMessages.map((message, index) => {
                           const contact = getContactForMessage(message);
                           const isIncoming = message.direction === "incoming";
+                          const isRead = readMessages.has(message.id);
 
                           return (
                             <motion.button
                               key={message.id}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.03 }}
+                              transition={{ delay: Math.min(index * 0.03, 0.3) }}
                               onClick={() => handleSelectMessage(message)}
                               className={`w-full p-4 text-left hover:bg-purple-50/50 transition-colors ${
                                 selectedMessage?.id === message.id ? "bg-purple-100/50" : ""
-                              }`}
+                              } ${!isRead && isIncoming ? "bg-purple-50/30" : ""}`}
                             >
                               <div className="flex items-start gap-3">
-                                <div
-                                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium shrink-0 ${
-                                    isIncoming
-                                      ? "bg-gradient-to-br from-purple-400 to-pink-400"
-                                      : "bg-gradient-to-br from-blue-400 to-cyan-400"
-                                  }`}
-                                >
-                                  {contact.initial}
+                                {/* Unread indicator */}
+                                <div className="flex items-center">
+                                  {!isRead && isIncoming && (
+                                    <div className="w-2 h-2 rounded-full bg-purple-500 mr-2" />
+                                  )}
+                                  <div
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium shrink-0 ${
+                                      isIncoming
+                                        ? "bg-gradient-to-br from-purple-400 to-pink-400"
+                                        : "bg-gradient-to-br from-blue-400 to-cyan-400"
+                                    }`}
+                                  >
+                                    {contact.initial}
+                                  </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between gap-2 mb-1">
-                                    <span className="font-medium text-foreground truncate">
+                                    <span className={`truncate ${!isRead && isIncoming ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
                                       {isIncoming ? contact.name : `To: ${contact.name}`}
                                     </span>
                                     <span className="text-xs text-muted-foreground shrink-0">
                                       {formatTimestamp(message.timestamp)}
                                     </span>
                                   </div>
-                                  <p className="text-sm text-muted-foreground truncate">
-                                    {message.content.substring(0, 60)}
-                                    {message.content.length > 60 && "..."}
+                                  <p className={`text-sm truncate ${!isRead && isIncoming ? "text-foreground/80" : "text-muted-foreground"}`}>
+                                    {cleanEmailContent(message.content).substring(0, 60)}
+                                    {cleanEmailContent(message.content).length > 60 && "..."}
                                   </p>
                                   <div className="mt-1">
                                     <span
@@ -624,9 +671,9 @@ export default function MailPage() {
                       exit={{ opacity: 0, x: 20 }}
                       className="w-full lg:w-3/5"
                     >
-                      <div className="glass-card rounded-2xl overflow-hidden">
+                      <div className="glass-card rounded-2xl overflow-hidden max-h-[70vh] flex flex-col">
                         {/* Message Header */}
-                        <div className="p-4 border-b border-purple-100/50">
+                        <div className="p-4 border-b border-purple-100/50 shrink-0">
                           <div className="flex items-center justify-between mb-4">
                             <button
                               onClick={() => setSelectedMessage(null)}
@@ -690,15 +737,30 @@ export default function MailPage() {
                         </div>
 
                         {/* Message Body */}
-                        <div className="p-6">
-                          <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-                            {selectedMessage.content}
-                          </div>
+                        <div className="p-6 overflow-y-auto flex-1">
+                          {selectedMessage.content.includes("<") &&
+                           selectedMessage.content.includes(">") ? (
+                            // Render as HTML if it looks like HTML
+                            <div
+                              className="text-foreground leading-relaxed prose prose-sm max-w-none prose-p:my-2 prose-a:text-purple-600"
+                              dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(selectedMessage.content, {
+                                  ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'span', 'div', 'h1', 'h2', 'h3', 'table', 'tr', 'td', 'th', 'tbody', 'thead'],
+                                  ALLOWED_ATTR: ['href', 'style', 'class']
+                                })
+                              }}
+                            />
+                          ) : (
+                            // Render as cleaned plain text
+                            <div className="text-foreground leading-relaxed whitespace-pre-wrap break-words">
+                              {cleanEmailContent(selectedMessage.content)}
+                            </div>
+                          )}
                         </div>
 
                         {/* Actions */}
                         {selectedMessage.direction === "incoming" && (
-                          <div className="p-4 border-t border-purple-100/50">
+                          <div className="p-4 border-t border-purple-100/50 shrink-0">
                             <button
                               onClick={() => {
                                 const replyTo = selectedMessage.from_number || "";

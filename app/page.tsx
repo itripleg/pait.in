@@ -64,7 +64,7 @@ export default function LandingPage() {
                 className="text-xl font-semibold gradient-text"
                 style={{ fontFamily: "var(--font-satisfy), cursive" }}
               >
-                paitin
+                pait.in
               </span>
             </motion.div>
 
