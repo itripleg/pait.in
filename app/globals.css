@@ -138,6 +138,15 @@
   border: 1px solid hsl(280 25% 88% / 0.5);
 }
 
+/* Mobile: reduce blur intensity but keep nice transparency */
+@media (max-width: 768px) {
+  .glass-card {
+    background: hsl(0 0% 100% / 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
 /* Shimmer effect - translate based for overlays */
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
