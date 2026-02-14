@@ -208,7 +208,9 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
           className={`absolute ${getSizeClass(element.size)} select-none`}
           style={{
             left: `${element.left}%`,
-            filter: "blur(1px)",
+            willChange: "transform",
+            // Only blur on desktop for performance
+            filter: isMobile ? "none" : "blur(1px)",
           }}
           initial={{
             y: "-15vh",
@@ -217,7 +219,8 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
           }}
           animate={{
             y: "115vh",
-            rotate: element.rotationEnd,
+            // Simpler rotation on mobile
+            rotate: isMobile ? element.rotation : element.rotationEnd,
             opacity: [0, element.opacity, element.opacity, 0],
           }}
           transition={{
@@ -232,7 +235,7 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
         </motion.div>
       ))}
 
-      {/* Floating elements with pulse */}
+      {/* Floating elements with pulse - simplified on mobile */}
       {floatingElements.map((element) => (
         <motion.div
           key={element.id}
@@ -240,15 +243,22 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
           style={{
             left: `${element.left}%`,
             top: `${element.top}%`,
-            filter: "blur(0.5px)",
+            willChange: "transform",
             opacity: element.opacity,
           }}
-          animate={{
-            y: [-15, 15, -15],
-            x: [-8, 8, -8],
-            scale: [1, 1.15, 1],
-            rotate: [element.rotation, element.rotationEnd, element.rotation],
-          }}
+          animate={
+            isMobile
+              ? {
+                  // Simpler animation on mobile - just gentle bob
+                  y: [-8, 8, -8],
+                }
+              : {
+                  y: [-15, 15, -15],
+                  x: [-8, 8, -8],
+                  scale: [1, 1.15, 1],
+                  rotate: [element.rotation, element.rotationEnd, element.rotation],
+                }
+          }
           transition={{
             duration: element.duration,
             repeat: Infinity,
@@ -260,13 +270,14 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
         </motion.div>
       ))}
 
-      {/* Rising elements (Valentine's hearts floating up) */}
-      {risingElements.map((element) => (
+      {/* Rising elements (Valentine's hearts floating up) - skip on mobile for performance */}
+      {!isMobile && risingElements.map((element) => (
         <motion.div
           key={element.id}
           className={`absolute ${getSizeClass(element.size)} select-none`}
           style={{
             left: `${element.left}%`,
+            willChange: "transform",
             filter: "blur(1px)",
           }}
           initial={{
@@ -293,9 +304,9 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
         </motion.div>
       ))}
 
-      {/* Sparkle particles - sparse */}
-      <div className="absolute inset-0">
-        {Array.from({ length: isMobile ? 4 : 6 }).map((_, i) => {
+      {/* Sparkle particles - skip on mobile for performance */}
+      {!isMobile && <div className="absolute inset-0">
+        {Array.from({ length: 6 }).map((_, i) => {
           const seed = i * 3571;
           return (
             <motion.div
@@ -318,7 +329,7 @@ export const HolidayBackground: React.FC<{ forceHoliday?: Holiday }> = ({
             />
           );
         })}
-      </div>
+      </div>}
 
       {/* Valentine's special: floating heart burst on edges (desktop only) */}
       {holiday === "valentines" && !isMobile && (

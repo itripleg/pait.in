@@ -69,8 +69,8 @@ export default function RootLayout({
         {/* Buddy peek microinteraction (appears when pet is happy) */}
         <BuddyPeek />
 
-        {/* Floating decorative elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-5">
+        {/* Floating decorative elements - hidden on mobile for performance */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-5 hidden sm:block">
           {/* Soft blobs */}
           <div
             className="absolute -top-32 -right-32 w-96 h-96 rounded-full blur-3xl opacity-30 blob-animated"
