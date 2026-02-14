@@ -85,12 +85,26 @@ const LogoutIcon = () => (
 
 type Tab = "inbox" | "compose";
 
-// Clean up email content for display - remove tracking URLs, hidden characters, etc.
+// Clean up email content for display - remove tracking URLs, hidden characters, CSS, HTML junk
 function cleanEmailContent(content: string): string {
   if (!content) return "";
 
   let cleaned = content
-    // Replace replacement character (�) with nothing
+    // Remove CSS blocks (anything between { and })
+    .replace(/\{[^}]*\}/g, " ")
+    // Remove CSS @-rules (@media, @font-face, etc.)
+    .replace(/@[\w-]+[^{]*\{[^}]*\}/g, "")
+    .replace(/@[\w-]+\s+[^;{]+;?/g, "")
+    // Remove HTML entities
+    .replace(/&[#\w]+;/g, " ")
+    // Remove CSS property patterns (word-word: or word:)
+    .replace(/[\w-]+\s*:\s*[^;}\n]+[;]?/g, " ")
+    // Remove common CSS/HTML keywords
+    .replace(/\b(display|font-size|line-height|margin|padding|width|height|color|background|border|none|important|block|inline|hidden|visible|auto|px|em|rem|vh|vw)\b[:\s]*/gi, " ")
+    // Remove URLs (including font URLs, tracking URLs, etc.)
+    .replace(/https?:\/\/[^\s)'"]+/gi, "")
+    .replace(/url\([^)]*\)/gi, "")
+    // Remove replacement character (�)
     .replace(/\uFFFD/g, "")
     // Replace non-breaking spaces with regular spaces
     .replace(/\u00A0/g, " ")
@@ -98,21 +112,33 @@ function cleanEmailContent(content: string): string {
     .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, "")
     // Remove sequences of whitespace characters used as spacers
     .replace(/[\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F]+/g, " ")
-    // Replace other common problematic Unicode chars with spaces/nothing
-    .replace(/[\u2028\u2029]/g, "\n") // Line/paragraph separators
-    .replace(/[\u0080-\u009F]/g, "") // C1 control characters
-    // Remove tracking URLs (long base64-encoded URLs)
-    .replace(/https?:\/\/[^\s]*(?:qs=|click\.)[^\s]*/gi, "[link]")
-    // Remove URLs longer than 100 characters (likely tracking)
-    .replace(/https?:\/\/[^\s]{100,}/gi, "[link]")
-    // Remove repeated whitespace
-    .replace(/[ ]{3,}/g, " ")
+    // Replace other common problematic Unicode chars
+    .replace(/[\u2028\u2029]/g, "\n")
+    .replace(/[\u0080-\u009F]/g, "")
+    // Remove CSS class names and selectors
+    .replace(/\.[a-zA-Z][\w-]*\s*[,{]/g, " ")
+    .replace(/\#[a-zA-Z][\w-]*/g, " ")
     // Remove template variables like @productName, @productLink
     .replace(/@\w+/g, "")
+    // Remove repeated punctuation and symbols
+    .replace(/[{}();,]+/g, " ")
+    // Remove lines that are mostly non-letter characters
+    .split("\n")
+    .filter(line => {
+      const letters = (line.match(/[a-zA-Z]/g) || []).length;
+      const total = line.trim().length;
+      return total === 0 || letters / total > 0.3;
+    })
+    .join("\n")
+    // Remove repeated whitespace
+    .replace(/[ \t]{2,}/g, " ")
     // Clean up multiple newlines
     .replace(/\n{3,}/g, "\n\n")
-    // Remove lines that are just "[link]" repeated
-    .replace(/(\[link\]\s*){2,}/g, "[link] ")
+    // Remove lines that are just whitespace
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join("\n")
     // Trim
     .trim();
 

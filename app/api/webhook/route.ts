@@ -213,14 +213,21 @@ async function handleEmailWebhook(request: NextRequest) {
 
   console.log("👤 Contact:", contactName);
 
-  // Use text content, fallback to HTML if needed
-  let emailContent = text || "";
-  if (!emailContent && html) {
-    // Basic HTML to text conversion (remove tags)
-    emailContent = html.replace(/<[^>]*>/g, "").trim();
+  // Extract content - prefer HTML with proper extraction over raw text
+  // (raw text from email services often contains CSS garbage)
+  let emailContent = "";
+
+  if (html) {
+    // Extract text from HTML properly
+    emailContent = extractTextFromHtml(html);
   }
 
-  // Clean up the content (remove quoted replies)
+  // If HTML extraction failed or was empty, try raw text
+  if (!emailContent && text) {
+    emailContent = text;
+  }
+
+  // Clean up the content (remove quoted replies, CSS junk, etc.)
   const cleanContent = cleanEmailContent(emailContent);
 
   if (!cleanContent || cleanContent.trim().length === 0) {
@@ -299,6 +306,50 @@ function cleanEmailContent(content: string): string {
   }
 
   return cleanedContent.trim();
+}
+
+// Extract readable text from HTML email content
+function extractTextFromHtml(html: string): string {
+  if (!html) return "";
+
+  let text = html
+    // Remove doctype, html, head, body tags but keep content
+    .replace(/<!DOCTYPE[^>]*>/gi, "")
+    // Remove style tags and their content
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    // Remove script tags and their content
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    // Remove head section entirely
+    .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
+    // Remove HTML comments
+    .replace(/<!--[\s\S]*?-->/g, "")
+    // Remove hidden elements
+    .replace(/<[^>]+style\s*=\s*["'][^"']*display\s*:\s*none[^"']*["'][^>]*>[\s\S]*?<\/[^>]+>/gi, "")
+    // Convert br tags to newlines
+    .replace(/<br\s*\/?>/gi, "\n")
+    // Convert p, div, tr, li endings to newlines
+    .replace(/<\/(p|div|tr|li|h[1-6])>/gi, "\n")
+    // Remove remaining HTML tags
+    .replace(/<[^>]+>/g, " ")
+    // Decode HTML entities
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#(\d+);/gi, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)))
+    // Remove other HTML entities
+    .replace(/&[#\w]+;/g, " ")
+    // Clean up whitespace
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return text;
 }
 
 export async function GET() {
