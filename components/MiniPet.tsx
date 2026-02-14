@@ -65,6 +65,7 @@ export function MiniPet() {
   const [showFood, setShowFood] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [tapCount, setTapCount] = useState(0);
+  const [showSparkle, setShowSparkle] = useState(false);
 
   // Load pet state from localStorage
   useEffect(() => {
@@ -129,6 +130,31 @@ export function MiniPet() {
     return () => clearInterval(interval);
   }, [pet]);
 
+  // Occasionally show sparkle when pet is full
+  useEffect(() => {
+    if (!pet || pet.hunger < 100) {
+      setShowSparkle(false);
+      return;
+    }
+
+    const sparkle = () => {
+      setShowSparkle(true);
+      setTimeout(() => setShowSparkle(false), 2000);
+    };
+
+    // Initial sparkle after short delay
+    const initialTimeout = setTimeout(sparkle, 1000);
+    // Then sparkle randomly every 8-15 seconds
+    const interval = setInterval(() => {
+      if (Math.random() > 0.5) sparkle();
+    }, 8000 + Math.random() * 7000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
+  }, [pet?.hunger]);
+
   const feedPet = useCallback(() => {
     if (!pet) return;
 
@@ -179,39 +205,21 @@ export function MiniPet() {
 
   return (
     <motion.div
-      className="relative rounded-3xl overflow-hidden cursor-pointer select-none group"
+      className="glass-card relative rounded-3xl overflow-hidden cursor-pointer select-none group"
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={feedPet}
     >
-      {/* Background Layer - Artistic gradient with pattern */}
-      <div className="absolute inset-0 z-0">
-        {/* Base gradient that changes with mood */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${mood.bgGradient} transition-all duration-700`}
-        />
+      {/* Mood gradient overlay */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${mood.bgGradient} transition-all duration-700 pointer-events-none`}
+      />
 
-        {/* Decorative circles/blobs */}
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
-        <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-white/5 blur-xl" />
-
-        {/* Subtle pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* Glass overlay */}
-        <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm" />
-
-        {/* Hover glow effect */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-r ${mood.bgGradient} opacity-0 group-hover:opacity-50 transition-opacity duration-300`}
-        />
-      </div>
+      {/* Hover glow effect */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${mood.bgGradient} opacity-0 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none`}
+      />
 
       {/* Content Layer */}
       <div className="relative z-10 p-6">
@@ -284,15 +292,29 @@ export function MiniPet() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-foreground text-lg">Buddy</h3>
-              {pet.hunger >= 80 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="text-xs"
-                >
-                  ✨
-                </motion.span>
-              )}
+              <AnimatePresence mode="wait">
+                {pet.hunger < 100 ? (
+                  <motion.span
+                    key="bone"
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0 }}
+                    className="text-sm"
+                  >
+                    🦴
+                  </motion.span>
+                ) : showSparkle ? (
+                  <motion.span
+                    key="sparkle"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="text-xs"
+                  >
+                    ✨
+                  </motion.span>
+                ) : null}
+              </AnimatePresence>
             </div>
             <p className={`text-sm font-medium ${mood.color}`}>{mood.status}</p>
           </div>

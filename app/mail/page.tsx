@@ -844,103 +844,20 @@ export default function MailPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                <div className="glass-card rounded-2xl p-6">
-                  <h2 className="text-xl font-semibold text-foreground mb-6">New Email</h2>
-
-                  <div className="space-y-4">
-                    {/* Quick contact selector (if contacts with email exist) */}
-                    {contacts.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-muted-foreground mb-2">
-                          Quick Select
-                        </label>
-                        <select
-                          value={composeToContact}
-                          onChange={(e) => handleContactSelect(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl bg-white/50 border border-purple-200/50 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
-                        >
-                          <option value="">Choose a contact or type email below...</option>
-                          {contacts.map((contact) => (
-                            <option key={contact.id} value={contact.name}>
-                              {contact.emoji} {contact.name} ({contact.email})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">
-                        To (Email Address)
-                      </label>
-                      <input
-                        type="email"
-                        value={composeToEmail}
-                        onChange={(e) => {
-                          setComposeToEmail(e.target.value);
-                          setComposeToContact(""); // Clear contact selection when typing
-                        }}
-                        placeholder="email@example.com"
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 border border-purple-200/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">
-                        Subject (optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={composeSubject}
-                        onChange={(e) => setComposeSubject(e.target.value)}
-                        placeholder="What's this about?"
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 border border-purple-200/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-2">
-                        Message
-                      </label>
-                      <textarea
-                        value={composeBody}
-                        onChange={(e) => setComposeBody(e.target.value)}
-                        placeholder="Write your message..."
-                        rows={8}
-                        className="w-full px-4 py-3 rounded-xl bg-white/50 border border-purple-200/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-all resize-none"
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4">
-                      <button
-                        onClick={() => setActiveTab("inbox")}
-                        className="px-6 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-purple-100/50 transition-all font-medium"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSend}
-                        disabled={!composeToEmail || !composeBody || isSending}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg shadow-purple-300/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isSending ? (
-                          <>
-                            <motion.div
-                              className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <SendIcon />
-                            Send Email
-                          </>
-                        )}
-                      </button>
-                    </div>
+                <div className="glass-card rounded-2xl p-12 text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center text-4xl">
+                    ✉️
                   </div>
+                  <h2 className="text-2xl font-semibold text-foreground mb-3">Coming Soon</h2>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Sending emails is being set up. Check back soon!
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("inbox")}
+                    className="mt-8 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg shadow-purple-300/30"
+                  >
+                    Back to Inbox
+                  </button>
                 </div>
               </motion.div>
             )}

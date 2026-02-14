@@ -199,39 +199,6 @@ export function BuddyPeek() {
               🐕
             </motion.div>
 
-            {/* Sparkles around happy dog */}
-            <motion.span
-              className="absolute -top-2 -right-1 text-lg"
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.7, 1, 0.7],
-                rotate: [0, 15, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              ✨
-            </motion.span>
-
-            <motion.span
-              className="absolute -bottom-1 -left-2 text-sm"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.5,
-              }}
-            >
-              ✨
-            </motion.span>
-
             {/* Hearts animation on click */}
             <AnimatePresence>
               {showHearts && (
