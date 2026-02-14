@@ -3,6 +3,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Google Fonts - loaded via next/font in layout */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,91 +46,208 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
 
-  /* ColorThemeProvider CSS Variables (HSL format) - Matrix Green Default */
-  --primary: 123 100% 50%; /* #00ff41 - Green */
-  --primary-foreground: 0 0% 0%; /* Black text on green */
-  --secondary: 0 0% 3%; /* #0a0a0a - Dark background */
-  --secondary-foreground: 123 100% 50%; /* Green text on dark */
-  --accent: 123 100% 25%; /* Darker green for accents */
-  --accent-foreground: 123 100% 90%; /* Light green text */
-  --foreground: 123 100% 50%; /* Green text */
-  --background: 0 0% 0%; /* Black background */
-  --card: 0 0% 4%; /* Slightly lighter than background */
-  --card-foreground: 123 100% 50%; /* Green text on cards */
-  --muted: 0 0% 10%; /* Muted backgrounds */
-  --muted-foreground: 123 100% 70%; /* Lighter green for muted text */
-  --border: 123 100% 20%; /* Green borders with transparency */
-  --input: 0 0% 10%; /* Dark inputs */
-  --ring: 123 100% 50%; /* Green focus rings */
-  --destructive: 0 100% 63%; /* Red for errors */
-  --destructive-foreground: 0 0% 100%; /* White on red */
+  /* Dreamy Pastel Theme - Soft lavender and rose */
+  --primary: 280 67% 70%; /* Soft lavender */
+  --primary-foreground: 0 0% 100%; /* White text on primary */
+  --secondary: 330 50% 85%; /* Soft blush pink */
+  --secondary-foreground: 280 40% 30%; /* Deep purple text */
+  --accent: 200 70% 75%; /* Soft sky blue */
+  --accent-foreground: 200 50% 25%; /* Deep blue text */
+  --foreground: 280 30% 25%; /* Deep purple-gray text */
+  --background: 280 30% 98%; /* Nearly white with lavender tint */
+  --card: 0 0% 100%; /* Pure white cards */
+  --card-foreground: 280 30% 25%; /* Deep purple-gray */
+  --muted: 280 20% 94%; /* Light lavender muted */
+  --muted-foreground: 280 15% 50%; /* Medium purple-gray */
+  --border: 280 25% 88%; /* Soft lavender border */
+  --input: 280 20% 96%; /* Light input backgrounds */
+  --ring: 280 67% 70%; /* Lavender focus ring */
+  --destructive: 0 70% 60%; /* Soft red for errors */
+  --destructive-foreground: 0 0% 100%;
 
   /* Popover */
-  --popover: 0 0% 4%;
-  --popover-foreground: 123 100% 50%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 280 30% 25%;
 
-  /* Charts */
-  --chart-1: 123 100% 50%;
-  --chart-2: 180 100% 50%;
-  --chart-3: 40 100% 50%;
-  --chart-4: 277 85% 63%;
-  --chart-5: 0 100% 63%;
+  /* Charts - Pastel palette */
+  --chart-1: 280 67% 70%;
+  --chart-2: 330 50% 75%;
+  --chart-3: 200 70% 75%;
+  --chart-4: 160 50% 65%;
+  --chart-5: 40 70% 70%;
 }
-
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    background-color: #000000 !important; /* Keep black background */
-    color: hsl(var(--primary)) !important; /* Use theme primary color for text */
+    @apply bg-background text-foreground antialiased;
   }
 }
 
-/* Terminal animations */
-@keyframes terminal-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+/* Dreamy gradient background */
+.dreamy-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(280 40% 96%) 0%,
+    hsl(330 35% 95%) 25%,
+    hsl(200 50% 95%) 50%,
+    hsl(280 40% 96%) 75%,
+    hsl(330 35% 95%) 100%
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
 }
 
-.terminal-cursor::after {
-  content: "█";
-  animation: terminal-blink 1s infinite;
-  @apply text-primary;
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
-/* Matrix rain effect for backgrounds */
-@keyframes matrix-rain {
-  0% { transform: translateY(-100vh); opacity: 1; }
-  100% { transform: translateY(100vh); opacity: 0; }
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  75% { transform: translateY(5px) rotate(-1deg); }
 }
 
-.matrix-rain {
-  position: absolute;
-  @apply text-primary;
-  font-family: monospace;
-  font-size: 14px;
-  animation: matrix-rain 3s linear infinite;
+.float {
+  animation: float 6s ease-in-out infinite;
 }
 
-/* Glitch effect for error states */
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
+.float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: -3s;
 }
 
-.glitch {
-  animation: glitch 0.3s ease-in-out infinite;
+/* Soft glow effect */
+.soft-glow {
+  box-shadow:
+    0 0 40px hsl(280 67% 70% / 0.15),
+    0 0 80px hsl(330 50% 75% / 0.1);
 }
 
-/* Theme transition animations */
+/* Glassmorphism card */
+.glass-card {
+  background: hsl(0 0% 100% / 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsl(280 25% 88% / 0.5);
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0 0% 100% / 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Sparkle dots */
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.sparkle-delayed-1 { animation-delay: 0.5s; }
+.sparkle-delayed-2 { animation-delay: 1s; }
+.sparkle-delayed-3 { animation-delay: 1.5s; }
+
+/* Subtle pulse */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.gentle-pulse {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(
+    135deg,
+    hsl(280 67% 60%) 0%,
+    hsl(330 60% 65%) 50%,
+    hsl(280 67% 60%) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth transitions */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(280 20% 94%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(280 30% 80%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(280 40% 70%);
+}
+
+/* Wave decoration */
+.wave-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.wave-decoration svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 80px;
+}
+
+/* Blob shapes */
+.blob {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+
+.blob-animated {
+  animation: blob-morph 8s ease-in-out infinite;
+}
+
+@keyframes blob-morph {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 30% 40% 70% 50%; }
+  75% { border-radius: 60% 40% 60% 30% / 70% 50% 40% 60%; }
 }

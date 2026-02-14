@@ -1,4 +1,4 @@
-// lib/contacts.ts - Updated with email support
+// lib/contacts.ts - Contact management for Paitin
 import { Contact } from "@/types";
 
 // Enhanced contact interface to support multiple communication methods
@@ -7,14 +7,14 @@ export interface EnhancedContact extends Contact {
   methods: ("sms" | "email")[];
 }
 
-// Hardcoded approved contacts with multiple communication methods
+// Approved contacts - Dad has email, others can be added later
 export const approvedContacts: EnhancedContact[] = [
   {
     id: "1",
     name: "Dad",
     phone: "+18287671065",
     email: "joshua.bell.828@gmail.com",
-    emoji: "👦🏽",
+    emoji: "👨",
     approved: true,
     methods: ["sms", "email"],
   },
@@ -22,28 +22,25 @@ export const approvedContacts: EnhancedContact[] = [
     id: "2",
     name: "Mom",
     phone: "+18283550002",
-    email: "mom@example.com",
     emoji: "👩",
     approved: true,
-    methods: ["sms", "email"],
+    methods: ["sms"],
   },
   {
     id: "3",
     name: "GingGing",
     phone: "+18283189701",
-    email: "gingGing@example.com",
     emoji: "👵",
     approved: true,
-    methods: ["sms", "email"],
+    methods: ["sms"],
   },
   {
     id: "4",
     name: "WayWay",
     phone: "+18286331891",
-    email: "wayway@example.com",
     emoji: "👴",
     approved: true,
-    methods: ["sms", "email"],
+    methods: ["sms"],
   },
   {
     id: "5",
@@ -51,7 +48,7 @@ export const approvedContacts: EnhancedContact[] = [
     phone: "+911",
     emoji: "🚨",
     approved: true,
-    methods: ["sms"], // Emergency only supports SMS
+    methods: ["sms"],
   },
 ];
 
@@ -72,11 +69,11 @@ export async function getContactByEmail(email: string): Promise<EnhancedContact 
   try {
     const { getContacts } = await import("./db");
     const contacts = await getContacts();
-    return contacts.find((contact) => contact.email === email);
+    return contacts.find((contact) => contact.email?.toLowerCase() === email.toLowerCase());
   } catch (error) {
     console.error("Error fetching contact by email:", error);
     // Fallback to hardcoded contacts
-    return approvedContacts.find((contact) => contact.email === email);
+    return approvedContacts.find((contact) => contact.email?.toLowerCase() === email.toLowerCase());
   }
 }
 
