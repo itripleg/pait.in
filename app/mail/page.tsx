@@ -90,10 +90,17 @@ function cleanEmailContent(content: string): string {
   if (!content) return "";
 
   let cleaned = content
+    // Replace replacement character (�) with nothing
+    .replace(/\uFFFD/g, "")
+    // Replace non-breaking spaces with regular spaces
+    .replace(/\u00A0/g, " ")
     // Remove soft hyphens and zero-width characters
     .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, "")
     // Remove sequences of whitespace characters used as spacers
     .replace(/[\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F]+/g, " ")
+    // Replace other common problematic Unicode chars with spaces/nothing
+    .replace(/[\u2028\u2029]/g, "\n") // Line/paragraph separators
+    .replace(/[\u0080-\u009F]/g, "") // C1 control characters
     // Remove tracking URLs (long base64-encoded URLs)
     .replace(/https?:\/\/[^\s]*(?:qs=|click\.)[^\s]*/gi, "[link]")
     // Remove URLs longer than 100 characters (likely tracking)
