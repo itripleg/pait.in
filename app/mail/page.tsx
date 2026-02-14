@@ -1,7 +1,7 @@
 // app/mail/page.tsx - Email management for Paitin with real backend
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
@@ -185,6 +185,9 @@ export default function MailPage() {
   // Read/unread tracking (stored in localStorage)
   const [readMessages, setReadMessages] = useState<Set<string | number>>(new Set());
 
+  // Track if we've done initial animation (to prevent re-animating on updates)
+  const hasAnimated = useRef(false);
+
   useEffect(() => {
     setMounted(true);
     checkAuth();
@@ -273,6 +276,12 @@ export default function MailPage() {
       if (res.ok) {
         const data = await res.json();
         setMessages(data.messages || []);
+        // After first load, disable entry animations to prevent twitching
+        if (!hasAnimated.current) {
+          setTimeout(() => {
+            hasAnimated.current = true;
+          }, 500);
+        }
       } else if (res.status === 401) {
         setUser(null);
       }
@@ -650,9 +659,9 @@ export default function MailPage() {
                           return (
                             <motion.button
                               key={message.id}
-                              initial={{ opacity: 0, y: 10 }}
+                              initial={hasAnimated.current ? false : { opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                              transition={hasAnimated.current ? { duration: 0 } : { delay: Math.min(index * 0.03, 0.3) }}
                               onClick={() => handleSelectMessage(message)}
                               className={`w-full p-4 text-left hover:bg-purple-50/50 transition-colors ${
                                 selectedMessage?.id === message.id ? "bg-purple-100/50" : ""
