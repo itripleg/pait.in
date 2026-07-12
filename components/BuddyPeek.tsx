@@ -11,6 +11,9 @@ interface PetState {
   lastFedDate: string;
 }
 
+const PEEK_EMOJIS = ["🐾", "💕", "🥰", "✨", "🎉", "💖", "🦴", "⭐"];
+const HEART_EMOJIS = ["💖", "💕", "❤️", "💗", "🩷"];
+
 export function BuddyPeek() {
   const [isVisible, setIsVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -18,6 +21,10 @@ export function BuddyPeek() {
   const [showHearts, setShowHearts] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHappy, setIsHappy] = useState(false);
+  const [peekEmoji, setPeekEmoji] = useState("🐾");
+  const [heartBursts, setHeartBursts] = useState<
+    { x: number; y: number; rotate: number }[]
+  >([]);
 
   // Check pet happiness from localStorage
   const checkPetHappiness = useCallback(() => {
@@ -73,6 +80,7 @@ export function BuddyPeek() {
       const sides: Array<"left" | "right" | "bottom"> = ["left", "right", "bottom"];
       const randomSide = sides[Math.floor(Math.random() * sides.length)];
       setPeekSide(randomSide);
+      setPeekEmoji(PEEK_EMOJIS[Math.floor(Math.random() * PEEK_EMOJIS.length)]);
       setIsVisible(true);
 
       // Show tooltip after peek animation
@@ -102,6 +110,13 @@ export function BuddyPeek() {
 
   const handleClick = () => {
     setShowTooltip(false);
+    setHeartBursts(
+      Array.from({ length: 5 }, () => ({
+        x: (Math.random() - 0.5) * 80,
+        y: -40 - Math.random() * 40,
+        rotate: (Math.random() - 0.5) * 30,
+      }))
+    );
     setShowHearts(true);
 
     setTimeout(() => {
@@ -145,9 +160,6 @@ export function BuddyPeek() {
   };
 
   const config = getPositionConfig();
-
-  const emojis = ["🐾", "💕", "🥰", "✨", "🎉", "💖", "🦴", "⭐"];
-  const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
 
   return (
     <AnimatePresence>
@@ -203,7 +215,7 @@ export function BuddyPeek() {
             <AnimatePresence>
               {showHearts && (
                 <>
-                  {[...Array(5)].map((_, i) => (
+                  {heartBursts.map((burst, i) => (
                     <motion.span
                       key={i}
                       className="absolute text-xl pointer-events-none"
@@ -215,9 +227,9 @@ export function BuddyPeek() {
                       animate={{
                         opacity: [0, 1, 1, 0],
                         scale: [0.5, 1.2, 1, 0.8],
-                        x: (Math.random() - 0.5) * 80,
-                        y: -40 - Math.random() * 40,
-                        rotate: (Math.random() - 0.5) * 30,
+                        x: burst.x,
+                        y: burst.y,
+                        rotate: burst.rotate,
                       }}
                       transition={{
                         duration: 1.2,
@@ -225,7 +237,7 @@ export function BuddyPeek() {
                         ease: "easeOut",
                       }}
                     >
-                      {["💖", "💕", "❤️", "💗", "🩷"][i % 5]}
+                      {HEART_EMOJIS[i % HEART_EMOJIS.length]}
                     </motion.span>
                   ))}
                 </>
@@ -242,7 +254,7 @@ export function BuddyPeek() {
                   transition={{ type: "spring", stiffness: 400, damping: 15 }}
                   className={`absolute ${config.tooltipPosition} text-2xl`}
                 >
-                  {randomEmoji}
+                  {peekEmoji}
                 </motion.div>
               )}
             </AnimatePresence>

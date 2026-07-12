@@ -312,7 +312,7 @@ function cleanEmailContent(content: string): string {
 function extractTextFromHtml(html: string): string {
   if (!html) return "";
 
-  let text = html
+  const text = html
     // Remove doctype, html, head, body tags but keep content
     .replace(/<!DOCTYPE[^>]*>/gi, "")
     // Remove style tags and their content
